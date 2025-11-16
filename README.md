@@ -90,9 +90,18 @@ cd areal-hr_ext-test
 cp .env.example .env
 ```
 
-3. Запустите через Docker Compose
+3. Запустите Backend
 ```bash
-docker-compose up
+cd api
+npm install
+npm run dev
+```
+
+4. Запустите Frontend
+```bash
+cd app
+npm install
+npm run dev
 ```
 
 ## Разработка
@@ -114,7 +123,15 @@ npm run dev
 ```
 
 ## Миграция базы данных
+1. Перейдите в директорию api: `cd api`
+2. Создайте / примените / откатите миграцию
 ```bash
-cd api
-npm run migration:run
+# Применить миграции
+npm run migrate:up
+
+# Откатить последнюю миграцию
+npm run migrate:down
+
+# Создать новую миграцию
+npm run migrate:create <name>
 ```
