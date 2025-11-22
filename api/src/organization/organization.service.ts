@@ -68,8 +68,10 @@ export class OrganizationService {
 
   async deleteOrganization(organizationId: number) {
     const query = `
-      DELETE FROM "Organization"
-      WHERE id = $1;
+      UPDATE "Organization"
+      SET is_deleted = true
+      WHERE id = $1
+      RETURNING id, is_deleted;
     `;
     const values = [organizationId];
 

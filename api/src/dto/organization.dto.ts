@@ -1,6 +1,6 @@
 export class CreateOrganizationDto {
   readonly name: string;
-  readonly comment: string;
+  readonly comment: string | null;
 }
 
 export class UpdateOrganizationDto extends CreateOrganizationDto {
