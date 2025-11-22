@@ -85,19 +85,15 @@ git clone https://github.com/ShpaksIK/areal-hr_ext-test.git
 cd areal-hr_ext-test
 ```
 
-2. Скопируйте env файл
-```bash
-cp .env.example .env
-```
-
-3. Запустите Backend
+2. Скопируйте .env файл и запустите Backend
 ```bash
 cd api
+cp .env.example .env
 npm install
 npm run dev
 ```
 
-4. Запустите Frontend
+3. Запустите Frontend
 ```bash
 cd app
 npm install
