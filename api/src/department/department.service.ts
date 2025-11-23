@@ -13,7 +13,7 @@ export class DepartmentService {
   async getDepartmentById(id: number): Promise<Department> {
     const query = `
       SELECT *
-      FROM "Department"
+      FROM "department"
       WHERE id = $1;
     `;
     const values = [id];
@@ -25,7 +25,7 @@ export class DepartmentService {
   async getDepartments(): Promise<Department[]> {
     const query = `
       SELECT *
-      FROM "Department";
+      FROM "department";
     `;
 
     const result = await this.pool.query(query);
@@ -36,7 +36,7 @@ export class DepartmentService {
     departmentDto: CreateDepartmentDto,
   ): Promise<Department> {
     const query = `
-    INSERT INTO "Department" (name, comment, organization_id, parent_id)
+    INSERT INTO "department" (name, comment, organization_id, parent_id)
     VALUES ($1, $2, $3, $4)
     RETURNING *;
     `;
@@ -60,7 +60,7 @@ export class DepartmentService {
     const valuesKeys = Object.values(departmentDto);
 
     const query = `
-      UPDATE "Department"
+      UPDATE "department"
       SET ${setKeys}
       WHERE id = $1
       RETURNING *;
@@ -73,10 +73,10 @@ export class DepartmentService {
 
   async deleteDepartment(departmentId: number) {
     const query = `
-      UPDATE "Department"
-      SET is_deleted = true
+      UPDATE "department"
+      SET deleted_at = current_timestamp
       WHERE id = $1
-      RETURNING id, is_deleted;
+      RETURNING id, deleted_at;
     `;
     const values = [departmentId];
 

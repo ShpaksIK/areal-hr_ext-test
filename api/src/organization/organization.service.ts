@@ -13,7 +13,7 @@ export class OrganizationService {
   async getOrganizationById(id: number): Promise<Organization> {
     const query = `
       SELECT *
-      FROM "Organization"
+      FROM "organization"
       WHERE id = $1;
     `;
     const values = [id];
@@ -25,7 +25,7 @@ export class OrganizationService {
   async getOrganizations(): Promise<Organization[]> {
     const query = `
       SELECT *
-      FROM "Organization";
+      FROM "organization";
     `;
 
     const result = await this.pool.query(query);
@@ -36,7 +36,7 @@ export class OrganizationService {
     organizationDto: CreateOrganizationDto,
   ): Promise<Organization> {
     const query = `
-      INSERT INTO "Organization" (name, comment)
+      INSERT INTO "organization" (name, comment)
       VALUES ($1, $2)
       RETURNING *;
     `;
@@ -55,7 +55,7 @@ export class OrganizationService {
     const valuesKeys = Object.values(organizationDto);
 
     const query = `
-      UPDATE "Organization"
+      UPDATE "organization"
       SET ${setKeys}
       WHERE id = $1
       RETURNING *;
@@ -68,10 +68,10 @@ export class OrganizationService {
 
   async deleteOrganization(organizationId: number) {
     const query = `
-      UPDATE "Organization"
-      SET is_deleted = true
+      UPDATE "organization"
+      SET deleted_at = current_timestamp
       WHERE id = $1
-      RETURNING id, is_deleted;
+      RETURNING id, deleted_at;
     `;
     const values = [organizationId];
 

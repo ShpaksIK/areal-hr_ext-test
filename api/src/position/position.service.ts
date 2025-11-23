@@ -13,7 +13,7 @@ export class PositionService {
   async getPositionById(id: number): Promise<Position> {
     const query = `
         SELECT *
-        FROM "Position"
+        FROM "position"
         WHERE id = $1;
     `;
     const values = [id];
@@ -25,7 +25,7 @@ export class PositionService {
   async getPositions(): Promise<Position[]> {
     const query = `
         SELECT *
-        FROM "Position";
+        FROM "position";
     `;
 
     const result = await this.pool.query(query);
@@ -34,7 +34,7 @@ export class PositionService {
 
   async createPosition(positionDto: CreatePositionDto): Promise<Position> {
     const query = `
-        INSERT INTO "Position" (name)
+        INSERT INTO "position" (name)
         VALUES ($1)
         RETURNING *;
     `;
@@ -53,7 +53,7 @@ export class PositionService {
     const valuesKeys = Object.values(positionDto);
 
     const query = `
-        UPDATE "Position"
+        UPDATE "position"
         SET ${setKeys}
         WHERE id = $1
         RETURNING *;
@@ -66,10 +66,10 @@ export class PositionService {
 
   async deletePosition(positionId: number) {
     const query = `
-        UPDATE "Position"
-        SET is_deleted = true
+        UPDATE "position"
+        SET deleted_at = current_timestamp
         WHERE id = $1
-        RETURNING id, is_deleted;
+        RETURNING id, deleted_at;
     `;
     const values = [positionId];
 
