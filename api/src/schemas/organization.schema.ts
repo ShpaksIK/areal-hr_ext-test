@@ -12,6 +12,9 @@ export const createOrganizationSchema = Joi.object({
 });
 
 export const updateOrganizationSchema = Joi.object({
+  id: Joi.number().required().messages({
+    'any.required': 'Идентификатор организации является обязательным полем',
+  }),
   name: Joi.string().min(1).max(255).messages({
     'string.min': 'Название должно содержать минимум 1 символ',
     'string.max': 'Название должно содержать максимум 255 символов',

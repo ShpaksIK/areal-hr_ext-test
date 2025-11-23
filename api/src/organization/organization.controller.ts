@@ -15,7 +15,7 @@ import {
 import {
   createOrganizationSchema,
   updateOrganizationSchema,
-} from 'src/schemas/create-organization.schema';
+} from 'src/schemas/organization.schema';
 import { ValidationPipe } from 'src/validation/validation.pipe';
 import { OrganizationService } from './organization.service';
 
