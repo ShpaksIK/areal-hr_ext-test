@@ -107,7 +107,7 @@ npm run dev
 ```bash
 cd api
 npm install
-npm run dev
+npm run start
 ```
 
 ### Frontend
