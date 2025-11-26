@@ -61,7 +61,7 @@ export class DepartmentService {
 
     const query = `
       UPDATE "department"
-      SET ${setKeys}
+      SET ${setKeys}, updated_at = current_timestamp
       WHERE id = $1
       RETURNING *;
     `;

@@ -54,7 +54,7 @@ export class PositionService {
 
     const query = `
         UPDATE "position"
-        SET ${setKeys}
+        SET ${setKeys}, updated_at = current_timestamp
         WHERE id = $1
         RETURNING *;
     `;
