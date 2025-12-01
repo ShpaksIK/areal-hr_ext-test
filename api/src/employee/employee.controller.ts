@@ -13,7 +13,7 @@ import { ValidationPipe } from 'src/validation/validation.pipe';
 import {
   createEmployeeSchema,
   updateEmployeeSchema,
-} from 'src/schemas/employee.schema copy';
+} from 'src/schemas/employee.schema';
 import { CreateEmployeeDto, UpdateEmployeeDto } from 'src/dto/employee.dto';
 import { HistoryService } from 'src/history/history.service';
 
