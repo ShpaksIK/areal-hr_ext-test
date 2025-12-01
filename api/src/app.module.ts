@@ -5,6 +5,7 @@ import { OrganizationService } from './organization/organization.service';
 import { OrganizationModule } from './organization/organization.module';
 import { DepartmentModule } from './department/department.module';
 import { PositionModule } from './position/position.module';
+import { HistoryModule } from './history/history.module';
 
 @Module({
   imports: [
@@ -12,6 +13,7 @@ import { PositionModule } from './position/position.module';
     OrganizationModule,
     DepartmentModule,
     PositionModule,
+    HistoryModule,
   ],
   providers: [DatabaseService, OrganizationService],
 })
