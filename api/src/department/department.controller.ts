@@ -18,10 +18,14 @@ import {
   CreateDepartmentDto,
   UpdateDepartmentDto,
 } from 'src/dto/department.dto';
+import { HistoryService } from 'src/history/history.service';
 
 @Controller('department')
 export class DepartmentController {
-  constructor(private departmentService: DepartmentService) {}
+  constructor(
+    private departmentService: DepartmentService,
+    private historyService: HistoryService,
+  ) {}
 
   @Get('/:departmentId')
   async getById(@Param('departmentId') departmentId: number) {
@@ -47,7 +51,19 @@ export class DepartmentController {
   @Put()
   @UsePipes(new ValidationPipe(updateDepartmentSchema))
   async update(@Body() updateDepartmentDto: UpdateDepartmentDto) {
-    return await this.departmentService.updateDepartment(updateDepartmentDto);
+    const updatedDepartment =
+      await this.departmentService.updateDepartment(updateDepartmentDto);
+
+    if (updatedDepartment.data) {
+      await this.historyService.createHistory({
+        user_id: null,
+        entity_type: 'department',
+        entity_id: updatedDepartment.data.id,
+        changed_fields: updatedDepartment.changed_fields,
+      });
+    }
+
+    return updatedDepartment.data;
   }
 
   @Delete('/:departmentId')
