@@ -18,10 +18,14 @@ import {
 } from 'src/schemas/organization.schema';
 import { ValidationPipe } from 'src/validation/validation.pipe';
 import { OrganizationService } from './organization.service';
+import { HistoryService } from 'src/history/history.service';
 
 @Controller('organization')
 export class OrganizationController {
-  constructor(private organizationService: OrganizationService) {}
+  constructor(
+    private organizationService: OrganizationService,
+    private historyService: HistoryService,
+  ) {}
 
   @Get('/:organizationId')
   async getById(@Param('organizationId') organizationId: number) {
@@ -48,9 +52,19 @@ export class OrganizationController {
   @Put()
   @UsePipes(new ValidationPipe(updateOrganizationSchema))
   async update(@Body() updateOrganizationDto: UpdateOrganizationDto) {
-    return await this.organizationService.updateOrganization(
-      updateOrganizationDto,
-    );
+    const updatedOrganization =
+      await this.organizationService.updateOrganization(updateOrganizationDto);
+
+    if (updatedOrganization.data) {
+      await this.historyService.createHistory({
+        user_id: null,
+        entity_type: 'organization',
+        entity_id: updatedOrganization.data.id,
+        changed_fields: updatedOrganization.changed_fields,
+      });
+    }
+
+    return updatedOrganization.data;
   }
 
   @Delete('/:organizationId')
