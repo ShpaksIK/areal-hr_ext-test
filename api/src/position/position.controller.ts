@@ -15,10 +15,14 @@ import {
 } from 'src/schemas/position.schema';
 import { ValidationPipe } from 'src/validation/validation.pipe';
 import { PositionService } from './position.service';
+import { HistoryService } from 'src/history/history.service';
 
 @Controller('position')
 export class PositionController {
-  constructor(private positionService: PositionService) {}
+  constructor(
+    private positionService: PositionService,
+    private historyService: HistoryService,
+  ) {}
 
   @Get('/:positionId')
   async getById(@Param('positionId') positionId: number) {
@@ -43,7 +47,19 @@ export class PositionController {
   @Put()
   @UsePipes(new ValidationPipe(updatePositionSchema))
   async update(@Body() updatePositionDto: UpdatePositionDto) {
-    return await this.positionService.updatePosition(updatePositionDto);
+    const updatedPosition =
+      await this.positionService.updatePosition(updatePositionDto);
+
+    if (updatedPosition.data) {
+      await this.historyService.createHistory({
+        user_id: null,
+        entity_type: 'position',
+        entity_id: updatedPosition.data.id,
+        changed_fields: updatedPosition.changed_fields,
+      });
+    }
+
+    return updatedPosition.data;
   }
 
   @Delete('/:positionId')

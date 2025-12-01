@@ -5,6 +5,7 @@ import {
   Position,
   UpdatePositionDto,
 } from 'src/dto/position.dto';
+import { renameFields } from 'src/helpers/rename-fields';
 
 @Injectable()
 export class PositionService {
@@ -46,8 +47,10 @@ export class PositionService {
 
   async updatePosition(
     positionDto: UpdatePositionDto,
-  ): Promise<Position | null> {
-    const setKeys = Object.keys(positionDto)
+  ): Promise<{ data: Position | null; changed_fields: string }> {
+    const dtoKeys = Object.keys(positionDto);
+
+    const setKeys = dtoKeys
       .map((key, index) => `${key} = $${index + 2}`)
       .join(', ');
     const valuesKeys = Object.values(positionDto);
@@ -61,7 +64,12 @@ export class PositionService {
     const values = [positionDto.id, ...valuesKeys];
 
     const result = await this.pool.query(query, values);
-    return result.rows[0] || null;
+    const renamedFields = JSON.stringify(renameFields(dtoKeys));
+
+    return {
+      data: result.rows[0] || null,
+      changed_fields: renamedFields,
+    };
   }
 
   async deletePosition(positionId: number) {
