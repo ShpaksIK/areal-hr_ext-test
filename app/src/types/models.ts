@@ -60,9 +60,48 @@ export interface File {
   updated_at?: string | null;
 }
 
-export type EntityType = 'organization' | 'department' | 'position' | 'employee' | 'file';
+export interface History {
+  id: number;
+  user_id: number;
+  entity_type: EntityType;
+  entity_id: number;
+  changed_fields: string | string[];
+  deleted_at?: string | null;
+  created_at?: string;
+  updated_at?: string | null;
+}
 
-export type Entity = Organization | Department | Position | Employee | File;
+export interface EmploymentOperation {
+  id: number;
+  employee_id: number;
+  operation_type: OperationType;
+  department_id?: number | null;
+  position_id?: number | null;
+  salary?: number | null;
+  deleted_at?: string | null;
+  created_at?: string;
+  updated_at?: string | null;
+}
+
+export type OperationType = 'create' | 'salaryChanges' | 'departmentChanges' | 'dismissal';
+
+export type EntityType =
+  | 'organization'
+  | 'department'
+  | 'position'
+  | 'employee'
+  | 'file'
+  | 'history'
+  | 'employmentOperation';
+
+export type Entity =
+  | Organization
+  | Department
+  | Position
+  | Employee
+  | File
+  | History
+  | EmploymentOperation;
 
 export type FieldFunction = (row: Entity) => string;
 
@@ -88,6 +127,13 @@ export interface SaveData {
   comment?: string;
   organizationId?: number | null;
   parentDepartmentId?: number | null;
+  salary?: number | null;
+  operation_type?: OperationType | null;
+  department_id?: number | null;
+  position_id?: number | null;
+  entity_type?: EntityType | null;
+  entity_id?: number | null;
+  changed_fields?: string | string[];
 }
 
 export interface TableColumn {

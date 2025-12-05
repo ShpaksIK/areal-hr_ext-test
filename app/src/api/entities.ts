@@ -6,6 +6,8 @@ import type {
   Employee,
   File,
   SaveData,
+  History,
+  EmploymentOperation,
 } from '../types/models';
 
 const API_BASE = 'http://localhost:3000';
@@ -16,6 +18,8 @@ const endpoints = {
   position: `${API_BASE}/position`,
   employee: `${API_BASE}/employee`,
   file: `${API_BASE}/file`,
+  history: `${API_BASE}/history`,
+  employmentOperation: `${API_BASE}/employment-operation`,
 };
 
 const buildBody = (type: EntityType, payload: SaveData): Record<string, unknown> => {
@@ -64,6 +68,15 @@ const buildBody = (type: EntityType, payload: SaveData): Record<string, unknown>
     body.employee_id = Number(employeeId);
   }
 
+  if (type === 'employmentOperation') {
+    const employeeId = String(payload.employee_id).slice(0, 1);
+    body.employee_id = Number(employeeId);
+    body.operation_type = payload.operation_type;
+    body.department_id = payload.department_id;
+    body.position_id = payload.position_id;
+    body.salary = Number(payload.salary);
+  }
+
   return body;
 };
 
@@ -73,13 +86,25 @@ export const fetchAllEntities = async (): Promise<{
   positions: Position[];
   employess: Employee[];
   files: File[];
+  history: History[];
+  employmentOperation: EmploymentOperation[];
 }> => {
-  const [orgsResponse, depsResponse, posResponse, empResponse, filesResponse] = await Promise.all([
+  const [
+    orgsResponse,
+    depsResponse,
+    posResponse,
+    empResponse,
+    filesResponse,
+    historyResponse,
+    empOpResponse,
+  ] = await Promise.all([
     fetch(endpoints.organization),
     fetch(endpoints.department),
     fetch(endpoints.position),
     fetch(endpoints.employee),
     fetch(endpoints.file),
+    fetch(endpoints.history),
+    fetch(endpoints.employmentOperation),
   ]);
 
   if (
@@ -87,17 +112,29 @@ export const fetchAllEntities = async (): Promise<{
     !depsResponse.ok ||
     !posResponse.ok ||
     !empResponse.ok ||
-    !filesResponse.ok
+    !filesResponse.ok ||
+    !historyResponse.ok ||
+    !empOpResponse.ok
   ) {
     throw new Error('Ошибка загрузки данных');
   }
 
-  const [organizationsRaw, departmentsRaw, positions, employess, files] = await Promise.all([
+  const [
+    organizationsRaw,
+    departmentsRaw,
+    positions,
+    employess,
+    files,
+    historyRaw,
+    employmentOperationRaw,
+  ] = await Promise.all([
     orgsResponse.json(),
     depsResponse.json(),
     posResponse.json(),
     empResponse.json(),
     filesResponse.json(),
+    historyResponse.json(),
+    empOpResponse.json(),
   ]);
 
   const organizations = organizationsRaw as Organization[];
@@ -114,12 +151,40 @@ export const fetchAllEntities = async (): Promise<{
     return normalized;
   }) as Department[];
 
+  const history: History[] = historyRaw.map((h: History) => {
+    if (typeof h.changed_fields === 'object') {
+      return {
+        ...h,
+        changed_fields: h.changed_fields.join(', '),
+      };
+    }
+  });
+
+  const employmentOperation = employmentOperationRaw.map((empOp: EmploymentOperation) => {
+    let operationType;
+    if (empOp.operation_type === 'create') {
+      operationType = 'Добавление';
+    } else if (empOp.operation_type === 'departmentChanges') {
+      operationType = 'Изменение отдела';
+    } else if (empOp.operation_type === 'dismissal') {
+      operationType = 'Увольнение';
+    } else {
+      operationType = 'Изменение зарплаты';
+    }
+    return {
+      ...empOp,
+      operationType,
+    };
+  });
+
   return {
     organizations,
     departments,
     positions,
     employess,
     files,
+    history,
+    employmentOperation,
   };
 };
 
@@ -127,21 +192,24 @@ export const fetchReferenceData = async (): Promise<{
   organizations: Organization[];
   departments: Department[];
   employees: string[];
+  positions: Position[];
 }> => {
-  const [orgsResponse, depsResponse, empsResponse] = await Promise.all([
+  const [orgsResponse, depsResponse, empsResponse, posResponse] = await Promise.all([
     fetch(endpoints.organization),
     fetch(endpoints.department),
     fetch(endpoints.employee),
+    fetch(endpoints.position),
   ]);
 
-  if (!orgsResponse.ok || !depsResponse.ok) {
+  if (!orgsResponse.ok || !depsResponse.ok || !empsResponse || !posResponse) {
     throw new Error('Ошибка загрузки справочных данных');
   }
 
-  const [organizationsRaw, departmentsRaw, employeesRaw] = await Promise.all([
+  const [organizationsRaw, departmentsRaw, employeesRaw, positionsRaw] = await Promise.all([
     orgsResponse.json(),
     depsResponse.json(),
     empsResponse.json(),
+    posResponse.json(),
   ]);
 
   const organizations = organizationsRaw as Organization[];
@@ -162,10 +230,13 @@ export const fetchReferenceData = async (): Promise<{
     (emp) => `${emp.id} ${emp.last_name} ${emp.first_name} ${emp.patronymic}`,
   );
 
+  const positions = positionsRaw;
+
   return {
     organizations,
     departments,
     employees,
+    positions,
   };
 };
 
