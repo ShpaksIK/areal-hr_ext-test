@@ -257,6 +257,59 @@
             class="q-mb-md"
           />
         </div>
+
+        <div v-if="entityType === 'employmentOperation'">
+          <q-select
+            v-model="form.employee_id"
+            :options="employees"
+            option-label="name"
+            option-value="id"
+            label="ID сотрудника *"
+            emit-value
+            map-options
+            :rules="[(val) => !!val || 'Обязательное поле']"
+            class="q-mb-md"
+          />
+          <q-select
+            v-model="form.operation_type"
+            :options="['Добавление', 'Увольнение', 'Изменение зарплаты', 'Изменение отдела']"
+            option-label="name"
+            option-value="id"
+            label="Тип операции *"
+            emit-value
+            map-options
+            :rules="[(val) => !!val || 'Обязательное поле']"
+            class="q-mb-md"
+          />
+          <q-select
+            v-model="form.department_id"
+            :options="departments"
+            option-label="name"
+            option-value="id"
+            label="ID отдела *"
+            emit-value
+            map-options
+            hint="Необязательно"
+            class="q-mb-md"
+          />
+          <q-select
+            v-model="form.position_id"
+            :options="positions"
+            option-label="name"
+            option-value="id"
+            label="ID должности *"
+            emit-value
+            map-options
+            hint="Необязательно"
+            class="q-mb-md"
+          />
+          <q-input
+            v-model="form.entity_type"
+            label="Зарплата"
+            hint="Необязательно"
+            class="q-mb-md"
+          />
+        </div>
       </q-card-section>
 
       <q-card-actions align="right">
@@ -279,6 +332,8 @@ import type {
   Employee,
   File,
   SaveData,
+  History,
+  EmploymentOperation,
 } from '../types/models';
 import { fetchReferenceData } from '../api/entities';
 
@@ -288,7 +343,15 @@ interface Props {
   modelValue: boolean;
   mode: ModalMode;
   entityType: EntityType;
-  editData: Organization | Department | Position | Employee | File | null;
+  editData:
+    | Organization
+    | Department
+    | Position
+    | Employee
+    | File
+    | History
+    | EmploymentOperation
+    | null;
 }
 
 interface Emits {
@@ -307,8 +370,10 @@ const showModal = computed<boolean>({
 const organizations = ref<Organization[]>([]);
 const employees = ref<string[]>([]);
 const departments = ref<Department[]>([]);
+const positions = ref<Position[]>([]);
 const form = ref<FormData>({
   id: -1,
+  employee_id: null,
   name: '',
   comment: '',
   organizationId: null,
@@ -328,7 +393,13 @@ const form = ref<FormData>({
   address_house: '',
   address_building: null,
   address_apartment: null,
-  employee_id: null,
+  salary: null,
+  operation_type: null,
+  department_id: null,
+  position_id: null,
+  entity_type: null,
+  entity_id: null,
+  changed_fields: [],
 });
 
 const modalTitle = computed<string>(() => {
@@ -338,6 +409,8 @@ const modalTitle = computed<string>(() => {
     position: 'должность',
     employee: 'сотрудник',
     file: 'файл',
+    history: 'историю',
+    employmentOperation: 'кадровую операцию',
   };
   const action = props.mode === 'add' ? 'Добавить' : 'Изменить';
   return `${action} ${typeNames[props.entityType]}`;
@@ -372,10 +445,16 @@ const onIssueDateSelected = (): void => {
 
 const loadReferenceData = async (): Promise<void> => {
   try {
-    const { organizations: orgs, departments: deps, employees: emps } = await fetchReferenceData();
+    const {
+      organizations: orgs,
+      departments: deps,
+      employees: emps,
+      positions: pos,
+    } = await fetchReferenceData();
     organizations.value = orgs;
     departments.value = deps;
     employees.value = emps;
+    positions.value = pos;
   } catch (error) {
     console.error('Ошибка загрузки данных:', error);
   }
@@ -404,6 +483,13 @@ const resetForm = (): void => {
     address_building: null,
     address_apartment: null,
     employee_id: null,
+    entity_type: null,
+    entity_id: null,
+    changed_fields: [],
+    department_id: null,
+    position_id: null,
+    salary: null,
+    operation_type: null,
   };
 };
 
@@ -422,7 +508,17 @@ const save = (): void => {
 
 watch(
   () => props.editData,
-  (newData: Organization | Department | Position | Employee | File | null) => {
+  (
+    newData:
+      | Organization
+      | Department
+      | Position
+      | Employee
+      | File
+      | History
+      | EmploymentOperation
+      | null,
+  ) => {
     if (newData && props.mode === 'edit') {
       form.value = { ...newData };
 

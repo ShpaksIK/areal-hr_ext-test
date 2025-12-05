@@ -6,6 +6,8 @@
       <q-tab name="position" label="Должности" />
       <q-tab name="employee" label="Сотрудники" />
       <q-tab name="file" label="Файлы" />
+      <q-tab name="employmentOperation" label="Кадровые операции" />
+      <q-tab name="history" label="История" />
     </q-tabs>
 
     <q-table
@@ -22,11 +24,11 @@
     >
       <template v-slot:top>
         <q-space />
-        <q-btn color="primary" label="Добавить" @click="openAddModal" />
+        <q-btn color="primary" label="Добавить" :disable="isOpenHistory" @click="openAddModal" />
         <q-btn
           color="secondary"
           label="Изменить"
-          :disable="!hasSelection"
+          :disable="!hasSelection || isOpenEmploymentOperations"
           @click="editItem"
           class="q-ml-sm"
         />
@@ -89,6 +91,8 @@ import type {
   Employee,
   File,
   SaveData,
+  History,
+  EmploymentOperation,
 } from '../types/models';
 import {
   fetchAllEntities,
@@ -103,12 +107,20 @@ const departments = ref<Department[]>([]);
 const positions = ref<Position[]>([]);
 const employees = ref<Employee[]>([]);
 const files = ref<File[]>([]);
-const selectedRows = ref<(Organization | Department | Position)[]>([]);
+const history = ref<History[]>([]);
+const employmentOperation = ref<EmploymentOperation[]>([]);
+const selectedRows = ref<
+  (Organization | Department | Position | File | History | Employee | EmploymentOperation)[]
+>([]);
 const showModal = ref<boolean>(false);
 const modalMode = ref<ModalMode>('add');
-const editData = ref<Organization | Department | Position | Employee | File | null>(null);
+const editData = ref<
+  Organization | Department | Position | Employee | File | History | EmploymentOperation | null
+>(null);
 const showDeleteConfirm = ref<boolean>(false);
 const isDeleting = ref<boolean>(false);
+const isOpenHistory = ref<boolean>(false);
+const isOpenEmploymentOperations = ref<boolean>(false);
 
 type SavePayload = SaveData;
 
@@ -135,6 +147,10 @@ const currentData = computed<Entity[]>(() => {
       return employees.value;
     case 'file':
       return files.value;
+    case 'history':
+      return history.value;
+    case 'employmentOperation':
+      return employmentOperation.value;
     default:
       return [];
   }
@@ -297,6 +313,87 @@ const columns = computed<TableColumn[]>(() => {
         align: 'left',
       },
     ],
+    history: [
+      { name: 'id', label: 'ID', field: 'id', align: 'left', sortable: true },
+      {
+        name: 'user_id',
+        label: 'ID Пользователя',
+        field: 'user_id',
+        align: 'left',
+        sortable: true,
+      },
+      {
+        name: 'entity_type',
+        label: 'Тип сущности',
+        field: 'entity_type',
+        align: 'left',
+        sortable: true,
+      },
+      {
+        name: 'entity_id',
+        label: 'ID сущности',
+        field: 'entity_id',
+        align: 'left',
+        sortable: true,
+      },
+      {
+        name: 'changed_fields',
+        label: 'Измененные поля',
+        field: 'changed_fields',
+        align: 'left',
+        sortable: true,
+      },
+      {
+        name: 'created_at',
+        label: 'Создано',
+        field: (row: Entity) => formatDate((row as Position).created_at),
+        align: 'left',
+      },
+      {
+        name: 'updated_at',
+        label: 'Изменено',
+        field: (row: Entity) => formatDate((row as Position).updated_at),
+        align: 'left',
+      },
+      {
+        name: 'status',
+        label: 'Статус',
+        field: (row: Entity) => formatStatus((row as Position).deleted_at ?? null),
+        align: 'left',
+      },
+    ],
+    employmentOperation: [
+      { name: 'id', label: 'ID', field: 'id', align: 'left', sortable: true },
+      {
+        name: 'employee_id',
+        label: 'ID сотрудника',
+        field: 'employee_id',
+        align: 'left',
+        sortable: true,
+      },
+      {
+        name: 'operation_type',
+        label: 'Тип операции',
+        field: 'operationType',
+        align: 'left',
+        sortable: true,
+      },
+      {
+        name: 'department_id',
+        label: 'ID отдела',
+        field: 'department_id',
+        align: 'left',
+        sortable: true,
+      },
+      {
+        name: 'position_id',
+        label: 'ID должности',
+        field: 'position_id',
+        align: 'left',
+        sortable: true,
+      },
+      { name: 'salary', label: 'Зарплата', field: 'salary', align: 'left', sortable: true },
+    ],
   };
 
   return baseColumns[activeTab.value] || [];
@@ -331,6 +428,8 @@ const loadData = async (): Promise<void> => {
       positions: pos,
       employess: emp,
       files: fls,
+      history: hst,
+      employmentOperation: empOp,
     } = await fetchAllEntities();
 
     organizations.value = orgs;
@@ -373,6 +472,9 @@ const loadData = async (): Promise<void> => {
         employee: employeeName,
       };
     });
+
+    history.value = hst;
+    employmentOperation.value = empOp;
   } catch (error) {
     console.error('Ошибка загрузки данных:', error);
   }
@@ -390,10 +492,14 @@ const typeNames: Record<EntityType, string> = {
   position: 'должность',
   employee: 'сотрудника',
   file: 'файл',
+  history: 'историю',
+  employmentOperation: 'кадровую операцию',
 };
 
 const editItem = (): void => {
   if (!hasSelection.value || !selectedItem.value) return;
+
+  if (isOpenHistory.value) return;
 
   modalMode.value = 'edit';
   editData.value = { ...selectedItem.value };
@@ -451,5 +557,16 @@ onMounted(loadData);
 watch(activeTab, () => {
   selectedRows.value = [];
   showDeleteConfirm.value = false;
+  if (activeTab.value === 'history') {
+    isOpenHistory.value = true;
+  } else {
+    isOpenHistory.value = false;
+  }
+
+  if (activeTab.value === 'employmentOperation') {
+    isOpenEmploymentOperations.value = true;
+  } else {
+    isOpenEmploymentOperations.value = false;
+  }
 });
 </script>
