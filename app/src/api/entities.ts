@@ -1,29 +1,28 @@
-import type { EntityType, Organization, Department, Position } from '../types/models';
+import type {
+  EntityType,
+  Organization,
+  Department,
+  Position,
+  Employee,
+  File,
+  SaveData,
+} from '../types/models';
 
 const API_BASE = 'http://localhost:3000';
 
 const endpoints = {
   organization: `${API_BASE}/organization`,
   department: `${API_BASE}/department`,
-  position: `${API_BASE}/position`
+  position: `${API_BASE}/position`,
+  employee: `${API_BASE}/employee`,
+  file: `${API_BASE}/file`,
 };
 
-export interface EntitySavePayload {
-  id?: number;
-  name: string;
-  comment?: string;
-  organizationId?: number | null;
-  parentDepartmentId?: number | null;
-}
-
-const buildBody = (
-  type: EntityType,
-  payload: EntitySavePayload
-): Record<string, unknown> => {
-  const body: Record<string, unknown> = {
-    id: payload.id,
-    name: payload.name
-  };
+const buildBody = (type: EntityType, payload: SaveData): Record<string, unknown> => {
+  const body: Record<string, unknown> = {};
+  if (payload.id) {
+    body.id = payload.id;
+  }
 
   if (payload.comment) {
     body.comment = payload.comment;
@@ -37,6 +36,34 @@ const buildBody = (
     body.parent_id = payload.parentDepartmentId;
   }
 
+  if (payload.name) {
+    body.name = payload.name;
+  }
+
+  if (type === 'employee') {
+    body.first_name = payload.first_name;
+    body.last_name = payload.last_name;
+    body.patronymic = payload.patronymic;
+    body.birth_date = payload.birth_date;
+    body.passport_division_code = payload.passport_division_code;
+    body.passport_issue_date = payload.passport_issue_date;
+    body.passport_issued_by = payload.passport_issued_by;
+    body.passport_number = payload.passport_number;
+    body.passport_series = payload.passport_series;
+    body.address_apartment = payload.address_apartment;
+    body.address_building = payload.address_building;
+    body.address_city = payload.address_city;
+    body.address_house = payload.address_house;
+    body.address_region = payload.address_region;
+    body.address_street = payload.address_street;
+  }
+
+  if (type === 'file') {
+    body.name = payload.name;
+    const employeeId = String(payload.employee_id).slice(0, 1);
+    body.employee_id = Number(employeeId);
+  }
+
   return body;
 };
 
@@ -44,36 +71,45 @@ export const fetchAllEntities = async (): Promise<{
   organizations: Organization[];
   departments: Department[];
   positions: Position[];
+  employess: Employee[];
+  files: File[];
 }> => {
-  const [orgsResponse, depsResponse, posResponse] = await Promise.all([
+  const [orgsResponse, depsResponse, posResponse, empResponse, filesResponse] = await Promise.all([
     fetch(endpoints.organization),
     fetch(endpoints.department),
-    fetch(endpoints.position)
+    fetch(endpoints.position),
+    fetch(endpoints.employee),
+    fetch(endpoints.file),
   ]);
 
-  if (!orgsResponse.ok || !depsResponse.ok || !posResponse.ok) {
+  if (
+    !orgsResponse.ok ||
+    !depsResponse.ok ||
+    !posResponse.ok ||
+    !empResponse.ok ||
+    !filesResponse.ok
+  ) {
     throw new Error('Ошибка загрузки данных');
   }
 
-  const [organizationsRaw, departmentsRaw, positions] = await Promise.all([
+  const [organizationsRaw, departmentsRaw, positions, employess, files] = await Promise.all([
     orgsResponse.json(),
     depsResponse.json(),
-    posResponse.json()
+    posResponse.json(),
+    empResponse.json(),
+    filesResponse.json(),
   ]);
 
   const organizations = organizationsRaw as Organization[];
 
-  const departments = (departmentsRaw).map((dept: Department) => {
+  const departments = departmentsRaw.map((dept: Department) => {
     const normalized: Department = {
       ...dept,
-      organizationId:
-        dept.organizationId,
+      organizationId: dept.organizationId,
       parentDepartmentId:
-        dept.parentDepartmentId ??
-        (dept.parentDepartment?.id as number | undefined | null) ??
-        null,
+        dept.parentDepartmentId ?? (dept.parentDepartment?.id as number | undefined | null) ?? null,
       organization: dept.organization || null,
-      parentDepartment: dept.parentDepartment || null
+      parentDepartment: dept.parentDepartment || null,
     };
     return normalized;
   }) as Department[];
@@ -81,57 +117,61 @@ export const fetchAllEntities = async (): Promise<{
   return {
     organizations,
     departments,
-    positions
+    positions,
+    employess,
+    files,
   };
 };
 
 export const fetchReferenceData = async (): Promise<{
   organizations: Organization[];
   departments: Department[];
+  employees: string[];
 }> => {
-  const [orgsResponse, depsResponse] = await Promise.all([
+  const [orgsResponse, depsResponse, empsResponse] = await Promise.all([
     fetch(endpoints.organization),
-    fetch(endpoints.department)
+    fetch(endpoints.department),
+    fetch(endpoints.employee),
   ]);
 
   if (!orgsResponse.ok || !depsResponse.ok) {
     throw new Error('Ошибка загрузки справочных данных');
   }
 
-  const [organizationsRaw, departmentsRaw] = await Promise.all([
+  const [organizationsRaw, departmentsRaw, employeesRaw] = await Promise.all([
     orgsResponse.json(),
-    depsResponse.json()
+    depsResponse.json(),
+    empsResponse.json(),
   ]);
 
   const organizations = organizationsRaw as Organization[];
 
-  const departments = (departmentsRaw).map((dept: Department) => {
+  const departments = departmentsRaw.map((dept: Department) => {
     const normalized: Department = {
       ...dept,
-      organizationId:
-        dept.organizationId,
+      organizationId: dept.organizationId,
       parentDepartmentId:
-        dept.parentDepartmentId ??
-        (dept.parentDepartment?.id as number | undefined | null) ??
-        null,
+        dept.parentDepartmentId ?? (dept.parentDepartment?.id as number | undefined | null) ?? null,
       organization: dept.organization || null,
-      parentDepartment: dept.parentDepartment || null
+      parentDepartment: dept.parentDepartment || null,
     };
     return normalized;
   }) as Department[];
 
+  const employees = (employeesRaw as Employee[]).map(
+    (emp) => `${emp.id} ${emp.last_name} ${emp.first_name} ${emp.patronymic}`,
+  );
+
   return {
     organizations,
-    departments
+    departments,
+    employees,
   };
 };
 
-export const deleteEntity = async (
-  type: EntityType,
-  id: number
-): Promise<void> => {
+export const deleteEntity = async (type: EntityType, id: number): Promise<void> => {
   const response = await fetch(`${endpoints[type]}/${id}`, {
-    method: 'DELETE'
+    method: 'DELETE',
   });
 
   if (!response.ok) {
@@ -139,18 +179,15 @@ export const deleteEntity = async (
   }
 };
 
-export const updateEntity = async (
-  type: EntityType,
-  payload: EntitySavePayload
-): Promise<void> => {
+export const updateEntity = async (type: EntityType, payload: SaveData): Promise<void> => {
   const body = buildBody(type, payload);
 
   const response = await fetch(`${endpoints[type]}`, {
     method: 'PUT',
     headers: {
-      'Content-Type': 'application/json'
+      'Content-Type': 'application/json',
     },
-    body: JSON.stringify(body)
+    body: JSON.stringify(body),
   });
 
   if (!response.ok) {
@@ -158,10 +195,7 @@ export const updateEntity = async (
   }
 };
 
-export const createEntity = async (
-  type: EntityType,
-  payload: EntitySavePayload
-): Promise<void> => {
+export const createEntity = async (type: EntityType, payload: SaveData): Promise<void> => {
   const body = buildBody(type, payload);
 
   delete body.id;
@@ -169,9 +203,9 @@ export const createEntity = async (
   const response = await fetch(endpoints[type], {
     method: 'POST',
     headers: {
-      'Content-Type': 'application/json'
+      'Content-Type': 'application/json',
     },
-    body: JSON.stringify(body)
+    body: JSON.stringify(body),
   });
 
   if (!response.ok) {

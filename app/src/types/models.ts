@@ -29,11 +29,66 @@ export interface Position {
   updated_at?: string | null;
 }
 
-export type EntityType = 'organization' | 'department' | 'position';
+export interface Employee {
+  id: number;
+  first_name: string;
+  last_name: string;
+  patronymic?: string | null;
+  birth_date: string;
+  passport_series: string;
+  passport_number: string;
+  passport_issue_date: string;
+  passport_division_code: string;
+  passport_issued_by: string;
+  address_region: string;
+  address_city: string;
+  address_street: string;
+  address_house: string;
+  address_building?: string | null;
+  address_apartment?: string | null;
+  deleted_at?: string | null;
+  created_at?: string;
+  updated_at?: string | null;
+}
 
-export type Entity = Organization | Department | Position;
+export interface File {
+  id: number;
+  name: string;
+  employee_id: number;
+  deleted_at?: string | null;
+  created_at?: string;
+  updated_at?: string | null;
+}
+
+export type EntityType = 'organization' | 'department' | 'position' | 'employee' | 'file';
+
+export type Entity = Organization | Department | Position | Employee | File;
 
 export type FieldFunction = (row: Entity) => string;
+
+export interface SaveData {
+  id: number;
+  employee_id?: number | null;
+  name?: string;
+  first_name?: string;
+  last_name?: string;
+  patronymic?: string | null;
+  birth_date?: string;
+  passport_series?: string;
+  passport_number?: string;
+  passport_issue_date?: string;
+  passport_division_code?: string;
+  passport_issued_by?: string;
+  address_region?: string;
+  address_city?: string;
+  address_street?: string;
+  address_house?: string;
+  address_building?: string | null;
+  address_apartment?: string | null;
+  comment?: string;
+  organizationId?: number | null;
+  parentDepartmentId?: number | null;
+}
 
 export interface TableColumn {
   name: string;
