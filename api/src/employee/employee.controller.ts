@@ -52,7 +52,6 @@ export class EmployeeController {
 
     if (updatedEmployee.data) {
       await this.historyService.createHistory({
-        user_id: null,
         entity_type: 'employee',
         entity_id: updatedEmployee.data.id,
         changed_fields: updatedEmployee.changed_fields,

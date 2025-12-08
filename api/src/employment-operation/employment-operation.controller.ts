@@ -46,7 +46,6 @@ export class EmploymentOperationController {
 
     if (createdEmploymentOperation) {
       await this.historyService.createHistory({
-        user_id: null,
         entity_type: 'employmentOperation',
         entity_id: createdEmploymentOperation.id,
         changed_fields: renamedFields,

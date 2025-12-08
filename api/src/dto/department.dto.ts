@@ -17,5 +17,5 @@ export interface Department {
   parentId: number | null;
   created_at: Date;
   updated_at: Date | null;
-  is_deleted: boolean;
+  deleted_at: Date | null;
 }

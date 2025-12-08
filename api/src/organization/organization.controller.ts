@@ -57,7 +57,6 @@ export class OrganizationController {
 
     if (updatedOrganization.data) {
       await this.historyService.createHistory({
-        user_id: null,
         entity_type: 'organization',
         entity_id: updatedOrganization.data.id,
         changed_fields: updatedOrganization.changed_fields,

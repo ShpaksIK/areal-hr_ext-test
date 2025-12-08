@@ -10,7 +10,7 @@ export const createPositionSchema = Joi.object({
 
 export const updatePositionSchema = Joi.object({
   id: Joi.number().required().messages({
-    'any.required': 'Идентификатор организации является обязательным полем',
+    'any.required': 'Идентификатор должности является обязательным полем',
   }),
   name: Joi.string().min(1).max(255).required().messages({
     'string.min': 'Название должно содержать минимум 1 символ',

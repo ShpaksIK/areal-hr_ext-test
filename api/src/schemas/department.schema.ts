@@ -17,7 +17,7 @@ export const createDepartmentSchema = Joi.object({
 
 export const updateDepartmentSchema = Joi.object({
   id: Joi.number().required().messages({
-    'any.required': 'Идентификатор организации является обязательным полем',
+    'any.required': 'Идентификатор отдела является обязательным полем',
   }),
   name: Joi.string().min(1).max(255).messages({
     'string.min': 'Название должно содержать минимум 1 символ',

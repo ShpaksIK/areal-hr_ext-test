@@ -52,7 +52,6 @@ export class PositionController {
 
     if (updatedPosition.data) {
       await this.historyService.createHistory({
-        user_id: null,
         entity_type: 'position',
         entity_id: updatedPosition.data.id,
         changed_fields: updatedPosition.changed_fields,
