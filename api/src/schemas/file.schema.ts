@@ -7,7 +7,7 @@ export const createFileSchema = Joi.object({
     'any.required': 'Название является обязательным полем',
   }),
   employee_id: Joi.number().required().messages({
-    'any.required': 'Идентификатор сотрудника является обязательным полем',
+    'any.required': 'Идентификатор файла является обязательным полем',
   }),
 });
 
@@ -15,7 +15,7 @@ export const updateFileSchema = Joi.object({
   id: Joi.number().required().messages({
     'any.required': 'Идентификатор файла является обязательным полем',
   }),
-  name: Joi.string().min(1).max(50).required().messages({
+  name: Joi.string().min(1).max(50).messages({
     'string.min': 'Название должно содержать минимум 1 символ',
     'string.max': 'Название должно содержать максимум 50 символов',
     'any.required': 'Название является обязательным полем',

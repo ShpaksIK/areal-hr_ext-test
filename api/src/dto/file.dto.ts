@@ -3,6 +3,10 @@ export class CreateFileDto {
   readonly employee_id: number;
 }
 
+export class UploadFileDto extends CreateFileDto {
+  readonly file: Express.Multer.File;
+}
+
 export class UpdateFileDto extends CreateFileDto {
   readonly id: number;
 }
