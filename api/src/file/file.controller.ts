@@ -4,6 +4,7 @@ import {
   Delete,
   Get,
   MaxFileSizeValidator,
+  NotFoundException,
   Param,
   ParseFilePipe,
   Post,
@@ -15,9 +16,16 @@ import {
 import { ValidationPipe } from 'src/validation/validation.pipe';
 import { FileService } from './file.service';
 import { createFileSchema, updateFileSchema } from 'src/schemas/file.schema';
-import { CreateFileDto, UpdateFileDto, UploadFileDto } from 'src/dto/file.dto';
+import {
+  CreateFileDto,
+  File,
+  UpdateFileDto,
+  UploadFileDto,
+} from 'src/dto/file.dto';
 import { HistoryService } from 'src/history/history.service';
 import { FileInterceptor } from '@nestjs/platform-express';
+import { ResponseDto } from 'src/dto/response.dto';
+import { ParseIntPipe } from 'src/validation/parse-int.pipe';
 
 @Controller('file')
 export class FileController {
@@ -27,13 +35,39 @@ export class FileController {
   ) {}
 
   @Get('/:fileId')
-  async getById(@Param('fileId') fileId: number) {
-    return await this.fileService.getFileById(fileId);
+  async getById(
+    @Param('fileId', new ParseIntPipe()) fileId: number,
+  ): Promise<ResponseDto<File | null>> {
+    const data = await this.fileService.getFileById(fileId);
+
+    if (!data) {
+      const errorResponse: ResponseDto<null> = {
+        success: false,
+        message: 'Запись не найдена',
+      };
+
+      throw new NotFoundException(errorResponse);
+    }
+
+    const response: ResponseDto<File> = {
+      success: true,
+      message: 'Успешно',
+      data: data,
+    };
+    return response;
   }
 
   @Get()
-  async getAll() {
-    return await this.fileService.getFiles();
+  async getAll(): Promise<ResponseDto<File[]>> {
+    const data = await this.fileService.getFiles();
+
+    const response: ResponseDto<File[]> = {
+      success: true,
+      message: 'Успешно',
+      data: data,
+    };
+
+    return response;
   }
 
   @Post()
@@ -46,38 +80,66 @@ export class FileController {
     )
     file: Express.Multer.File,
     @Body(new ValidationPipe(createFileSchema)) createFileDto: CreateFileDto,
-  ) {
+  ): Promise<ResponseDto<File>> {
     const uploadFileDto: UploadFileDto = {
       ...createFileDto,
       file,
     };
 
-    const result = await this.fileService.createFile(uploadFileDto);
+    const createdFile = await this.fileService.createFile(uploadFileDto);
 
-    return {
-      message: 'Файл создан успешно',
-      data: result,
+    const response: ResponseDto<File> = {
+      success: true,
+      message: 'Успешно',
+      data: createdFile,
     };
+
+    return response;
   }
 
   @Put()
   @UsePipes(new ValidationPipe(updateFileSchema))
-  async update(@Body() updateFileDto: UpdateFileDto) {
+  async update(
+    @Body() updateFileDto: UpdateFileDto,
+  ): Promise<ResponseDto<File | null>> {
     const updatedFile = await this.fileService.updateFile(updateFileDto);
 
-    if (updatedFile.data) {
-      await this.historyService.createHistory({
-        entity_type: 'employee',
-        entity_id: updatedFile.data.id,
-        changed_fields: updatedFile.changed_fields,
-      });
+    if (!updatedFile.data) {
+      const errorResponse: ResponseDto<null> = {
+        success: false,
+        message: 'Запись не найдена',
+      };
+
+      throw new NotFoundException(errorResponse);
     }
 
-    return updatedFile.data;
+    await this.historyService.createHistory({
+      entity_type: 'file',
+      entity_id: updatedFile.data.id,
+      changed_fields: updatedFile.changed_fields,
+    });
+
+    const response: ResponseDto<File> = {
+      success: true,
+      message: 'Успешно',
+      data: updatedFile.data,
+    };
+
+    return response;
   }
 
   @Delete('/:fileId')
-  async delete(@Param('fileId') fileId: number) {
-    return await this.fileService.deleteFile(fileId);
+  async delete(
+    @Param('fileId', new ParseIntPipe()) fileId: number,
+  ): Promise<ResponseDto<File>> {
+    const deletedFile = await this.fileService.deleteFile(fileId);
+
+    const response: ResponseDto<File> = {
+      success: true,
+      message: 'Успешно',
+      data: deletedFile,
+    };
+
+    return response;
   }
 }

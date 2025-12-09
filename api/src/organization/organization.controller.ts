@@ -3,6 +3,7 @@ import {
   Controller,
   Delete,
   Get,
+  NotFoundException,
   Param,
   Post,
   Put,
@@ -10,6 +11,7 @@ import {
 } from '@nestjs/common';
 import {
   CreateOrganizationDto,
+  Organization,
   UpdateOrganizationDto,
 } from 'src/dto/organization.dto';
 import {
@@ -19,6 +21,8 @@ import {
 import { ValidationPipe } from 'src/validation/validation.pipe';
 import { OrganizationService } from './organization.service';
 import { HistoryService } from 'src/history/history.service';
+import { ResponseDto } from 'src/dto/response.dto';
+import { ParseIntPipe } from 'src/validation/parse-int.pipe';
 
 @Controller('organization')
 export class OrganizationController {
@@ -28,46 +32,104 @@ export class OrganizationController {
   ) {}
 
   @Get('/:organizationId')
-  async getById(@Param('organizationId') organizationId: number) {
-    return await this.organizationService.getOrganizationById(organizationId);
+  async getById(
+    @Param('organizationId', new ParseIntPipe()) organizationId: number,
+  ): Promise<ResponseDto<Organization | null>> {
+    const data =
+      await this.organizationService.getOrganizationById(organizationId);
+
+    if (!data) {
+      const errorResponse: ResponseDto<null> = {
+        success: false,
+        message: 'Запись не найдена',
+      };
+
+      throw new NotFoundException(errorResponse);
+    }
+
+    const response: ResponseDto<Organization> = {
+      success: true,
+      message: 'Успешно',
+      data: data,
+    };
+    return response;
   }
 
   @Get()
-  async getAll() {
-    return await this.organizationService.getOrganizations();
+  async getAll(): Promise<ResponseDto<Organization[]>> {
+    const data = await this.organizationService.getOrganizations();
+
+    const response: ResponseDto<Organization[]> = {
+      success: true,
+      message: 'Успешно',
+      data: data,
+    };
+
+    return response;
   }
 
   @Post()
   @UsePipes(new ValidationPipe(createOrganizationSchema))
-  async create(@Body() createOrganizationDto: CreateOrganizationDto) {
-    const result = await this.organizationService.createOrganization(
-      createOrganizationDto,
-    );
-    return {
-      message: 'Организация создана успешно',
-      data: result,
+  async create(
+    @Body() createOrganizationDto: CreateOrganizationDto,
+  ): Promise<ResponseDto<Organization>> {
+    const createdOrganization =
+      await this.organizationService.createOrganization(createOrganizationDto);
+
+    const response: ResponseDto<Organization> = {
+      success: true,
+      message: 'Успешно',
+      data: createdOrganization,
     };
+
+    return response;
   }
 
   @Put()
   @UsePipes(new ValidationPipe(updateOrganizationSchema))
-  async update(@Body() updateOrganizationDto: UpdateOrganizationDto) {
+  async update(
+    @Body() updateOrganizationDto: UpdateOrganizationDto,
+  ): Promise<ResponseDto<Organization | null>> {
     const updatedOrganization =
       await this.organizationService.updateOrganization(updateOrganizationDto);
 
-    if (updatedOrganization.data) {
-      await this.historyService.createHistory({
-        entity_type: 'organization',
-        entity_id: updatedOrganization.data.id,
-        changed_fields: updatedOrganization.changed_fields,
-      });
+    if (!updatedOrganization.data) {
+      const errorResponse: ResponseDto<null> = {
+        success: false,
+        message: 'Запись не найдена',
+      };
+
+      throw new NotFoundException(errorResponse);
     }
 
-    return updatedOrganization.data;
+    await this.historyService.createHistory({
+      entity_type: 'organization',
+      entity_id: updatedOrganization.data.id,
+      changed_fields: updatedOrganization.changed_fields,
+    });
+
+    const response: ResponseDto<Organization> = {
+      success: true,
+      message: 'Успешно',
+      data: updatedOrganization.data,
+    };
+
+    return response;
   }
 
   @Delete('/:organizationId')
-  async delete(@Param('organizationId') organizationId: number) {
-    return await this.organizationService.deleteOrganization(organizationId);
+  async delete(
+    @Param('organizationId', new ParseIntPipe()) organizationId: number,
+  ): Promise<ResponseDto<Organization>> {
+    const deletedOrganization =
+      await this.organizationService.deleteOrganization(organizationId);
+
+    const response: ResponseDto<Organization> = {
+      success: true,
+      message: 'Успешно',
+      data: deletedOrganization,
+    };
+
+    return response;
   }
 }

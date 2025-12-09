@@ -3,7 +3,8 @@ export type EntityType =
   | 'department'
   | 'position'
   | 'employee'
-  | 'employmentOperation';
+  | 'employmentOperation'
+  | 'file';
 
 export class CreateHistortyDto {
   // readonly user_id: number;

@@ -2,8 +2,7 @@ import * as Joi from 'joi';
 
 export const createEmploymentOperationSchema = Joi.object({
   employee_id: Joi.number().required().messages({
-    'any.required':
-      'Идентификатор кадровой операции является обязательным полем',
+    'any.required': 'Идентификатор сотрудника является обязательным полем',
   }),
   operation_type: Joi.valid(
     'create',
