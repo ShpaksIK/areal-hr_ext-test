@@ -336,6 +336,7 @@ import type {
   EmploymentOperation,
 } from '../types/models';
 import { fetchReferenceData } from '../api/entities';
+import { useQuasar } from 'quasar';
 
 type FormData = SaveData;
 
@@ -367,6 +368,7 @@ const showModal = computed<boolean>({
   set: (value: boolean) => emit('update:modelValue', value),
 });
 
+const $q = useQuasar();
 const organizations = ref<Organization[]>([]);
 const employees = ref<string[]>([]);
 const departments = ref<Department[]>([]);
@@ -457,6 +459,7 @@ const loadReferenceData = async (): Promise<void> => {
     positions.value = pos;
   } catch (error) {
     console.error('Ошибка загрузки данных:', error);
+    $q.notify('Ошибка загрузки данных');
   }
 };
 

@@ -100,7 +100,9 @@ import {
   updateEntity,
   createEntity,
 } from '../api/entities';
+import { useQuasar } from 'quasar';
 
+const $q = useQuasar();
 const activeTab = ref<EntityType>('organization');
 const organizations = ref<Organization[]>([]);
 const departments = ref<Department[]>([]);
@@ -477,6 +479,7 @@ const loadData = async (): Promise<void> => {
     employmentOperation.value = empOp;
   } catch (error) {
     console.error('Ошибка загрузки данных:', error);
+    $q.notify('Ошибка загрузки данных');
   }
 };
 
@@ -524,6 +527,7 @@ const deleteItem = async (): Promise<void> => {
     editData.value = null;
   } catch (error) {
     console.error('Ошибка удаления:', error);
+    $q.notify('Ошибка удаления');
   } finally {
     isDeleting.value = false;
     showDeleteConfirm.value = false;
@@ -544,6 +548,7 @@ const handleSave = async (payload: SavePayload): Promise<void> => {
     await loadData();
   } catch (error) {
     console.error('Ошибка сохранения:', error);
+    $q.notify('Ошибка сохранения');
     return;
   }
 

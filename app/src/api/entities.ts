@@ -120,7 +120,7 @@ export const fetchAllEntities = async (): Promise<{
   }
 
   const [
-    organizationsRaw,
+    organizations,
     departmentsRaw,
     positions,
     employess,
@@ -137,9 +137,7 @@ export const fetchAllEntities = async (): Promise<{
     empOpResponse.json(),
   ]);
 
-  const organizations = organizationsRaw as Organization[];
-
-  const departments = departmentsRaw.map((dept: Department) => {
+  const departments = departmentsRaw.data.map((dept: Department) => {
     const normalized: Department = {
       ...dept,
       organizationId: dept.organizationId,
@@ -151,7 +149,7 @@ export const fetchAllEntities = async (): Promise<{
     return normalized;
   }) as Department[];
 
-  const history: History[] = historyRaw.map((h: History) => {
+  const history: History[] = historyRaw.data.map((h: History) => {
     if (typeof h.changed_fields === 'object') {
       return {
         ...h,
@@ -160,7 +158,7 @@ export const fetchAllEntities = async (): Promise<{
     }
   });
 
-  const employmentOperation = employmentOperationRaw.map((empOp: EmploymentOperation) => {
+  const employmentOperation = employmentOperationRaw.data.map((empOp: EmploymentOperation) => {
     let operationType;
     if (empOp.operation_type === 'create') {
       operationType = 'Добавление';
@@ -178,11 +176,11 @@ export const fetchAllEntities = async (): Promise<{
   });
 
   return {
-    organizations,
+    organizations: organizations.data,
     departments,
-    positions,
-    employess,
-    files,
+    positions: positions.data,
+    employess: employess.data,
+    files: files.data,
     history,
     employmentOperation,
   };
@@ -201,7 +199,7 @@ export const fetchReferenceData = async (): Promise<{
     fetch(endpoints.position),
   ]);
 
-  if (!orgsResponse.ok || !depsResponse.ok || !empsResponse || !posResponse) {
+  if (!orgsResponse.ok || !depsResponse.ok || !empsResponse.ok || !posResponse.ok) {
     throw new Error('Ошибка загрузки справочных данных');
   }
 
@@ -212,9 +210,7 @@ export const fetchReferenceData = async (): Promise<{
     posResponse.json(),
   ]);
 
-  const organizations = organizationsRaw as Organization[];
-
-  const departments = departmentsRaw.map((dept: Department) => {
+  const departments = departmentsRaw.data.map((dept: Department) => {
     const normalized: Department = {
       ...dept,
       organizationId: dept.organizationId,
@@ -226,26 +222,28 @@ export const fetchReferenceData = async (): Promise<{
     return normalized;
   }) as Department[];
 
-  const employees = (employeesRaw as Employee[]).map(
-    (emp) => `${emp.id} ${emp.last_name} ${emp.first_name} ${emp.patronymic}`,
+  const employees = employeesRaw.data.map(
+    (emp: Employee) => `${emp.id} ${emp.last_name} ${emp.first_name} ${emp.patronymic}`,
   );
 
-  const positions = positionsRaw;
-
   return {
-    organizations,
+    organizations: organizationsRaw.data,
     departments,
     employees,
-    positions,
+    positions: positionsRaw.data,
   };
 };
 
 export const deleteEntity = async (type: EntityType, id: number): Promise<void> => {
-  const response = await fetch(`${endpoints[type]}/${id}`, {
-    method: 'DELETE',
-  });
+  try {
+    const response = await fetch(`${endpoints[type]}/${id}`, {
+      method: 'DELETE',
+    });
 
-  if (!response.ok) {
+    if (!response.ok) {
+      throw new Error('Ошибка удаления');
+    }
+  } catch {
     throw new Error('Ошибка удаления');
   }
 };
@@ -253,15 +251,19 @@ export const deleteEntity = async (type: EntityType, id: number): Promise<void> 
 export const updateEntity = async (type: EntityType, payload: SaveData): Promise<void> => {
   const body = buildBody(type, payload);
 
-  const response = await fetch(`${endpoints[type]}`, {
-    method: 'PUT',
-    headers: {
-      'Content-Type': 'application/json',
-    },
-    body: JSON.stringify(body),
-  });
+  try {
+    const response = await fetch(`${endpoints[type]}`, {
+      method: 'PUT',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(body),
+    });
 
-  if (!response.ok) {
+    if (!response.ok) {
+      throw new Error('Ошибка сохранения');
+    }
+  } catch {
     throw new Error('Ошибка сохранения');
   }
 };
@@ -271,15 +273,19 @@ export const createEntity = async (type: EntityType, payload: SaveData): Promise
 
   delete body.id;
 
-  const response = await fetch(endpoints[type], {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-    },
-    body: JSON.stringify(body),
-  });
+  try {
+    const response = await fetch(endpoints[type], {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(body),
+    });
 
-  if (!response.ok) {
+    if (!response.ok) {
+      throw new Error('Ошибка создания');
+    }
+  } catch {
     throw new Error('Ошибка создания');
   }
 };
