@@ -21,6 +21,7 @@
       rows-per-page-label="Записей на странице"
       :pagination-label="paginationLabel"
       :selected-rows-label="selectedRowsLabel"
+      :table-row-style-fn="rowStyleFn"
     >
       <template v-slot:top>
         <q-space />
@@ -574,4 +575,8 @@ watch(activeTab, () => {
     isOpenEmploymentOperations.value = false;
   }
 });
+
+const rowStyleFn = (row: Entity) => {
+  return row.deleted_at ? 'color: #ccc' : 'color: #000'
+}
 </script>
