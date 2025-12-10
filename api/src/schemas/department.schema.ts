@@ -23,9 +23,9 @@ export const updateDepartmentSchema = Joi.object({
     'string.min': 'Название должно содержать минимум 1 символ',
     'string.max': 'Название должно содержать максимум 255 символов',
   }),
-  comment: Joi.string().max(255).messages({
+  comment: Joi.string().allow(null).max(255).messages({
     'string.max': 'Комментарий должен содержать максимум 255 символов',
   }),
   organization_id: Joi.number(),
-  parent_id: Joi.number(),
+  parent_id: Joi.number().allow(null),
 });

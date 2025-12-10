@@ -17,9 +17,9 @@ export const createEmploymentOperationSchema = Joi.object({
       'any.only':
         'Тип кадровой операции должен быть одним из: create, salaryChanges, departmentChanges, dismissal',
     }),
-  department_id: Joi.number(),
-  position_id: Joi.number(),
-  salary: Joi.number().min(0).messages({
+  department_id: Joi.number().allow(null),
+  position_id: Joi.number().allow(null),
+  salary: Joi.number().allow(null).min(0).messages({
     'number.min': 'Зарплата не может быть отрицательной',
   }),
 });

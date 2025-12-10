@@ -37,7 +37,5 @@ const fieldLabels = {
 };
 
 export function renameFields(fields: string[]): string[] {
-  return fields
-    .map((field) => fieldLabels[field] || field)
-    .filter((field) => fieldLabels[field]);
+  return fields.map((field) => fieldLabels[field] || field);
 }
