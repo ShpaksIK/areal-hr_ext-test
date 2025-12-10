@@ -25,8 +25,17 @@ export class EmploymentOperationService {
 
   async getEmploymentOperations(): Promise<EmploymentOperation[]> {
     const query = `
-            SELECT *
-            FROM "employment_operation";
+            SELECT "employment_operation".id, operation_type, salary,
+              employee_id, department_id, position_id,
+              "department".name as department_name,
+              "position".name as position_name,
+              "employee".first_name as employee_first_name,
+              "employee".last_name as employee_last_name,
+              "employee".patronymic as employee_patronymic
+            FROM "employment_operation"
+            JOIN "department" ON "employment_operation"."department_id" = "department".id
+            JOIN "position" ON "employment_operation".position_id = "position".id
+            JOIN "employee" ON "employment_operation".employee_id = "employee".id;
         `;
 
     const result = await this.pool.query(query);

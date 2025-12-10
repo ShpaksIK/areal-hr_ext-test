@@ -11,8 +11,7 @@ export const createEmployeeSchema = Joi.object({
     'string.max': 'Фамилия должна содержать максимум 50 символов',
     'any.required': 'Фамилия является обязательным полем',
   }),
-  patronymic: Joi.string().min(1).max(50).messages({
-    'string.min': 'Отчество должно содержать минимум 1 символ',
+  patronymic: Joi.string().allow(null).max(50).messages({
     'string.max': 'Отчество должно содержать максимум 50 символов',
   }),
   birth_date: Joi.date().iso().max('now').required().messages({
@@ -51,31 +50,28 @@ export const createEmployeeSchema = Joi.object({
   address_region: Joi.string().min(1).max(50).required().messages({
     'string.min': 'Регион должен содержать минимум 1 символов',
     'string.max': 'Регион должен содержать максимум 50 символов',
-    'any.required': 'Регион является обязательным полен',
+    'any.required': 'Регион является обязательным полем',
   }),
   address_city: Joi.string().min(1).max(50).required().messages({
     'string.min': 'Город должен содержать минимум 1 символов',
     'string.max': 'Город должен содержать максимум 50 символов',
-    'any.required': 'Город является обязательным полен',
+    'any.required': 'Город является обязательным полем',
   }),
   address_street: Joi.string().min(1).max(50).required().messages({
     'string.min': 'Улица должна содержать минимум 1 символов',
     'string.max': 'Улица должна содержать максимум 50 символов',
-    'any.required': 'Улица является обязательным полен',
+    'any.required': 'Улица является обязательным полем',
   }),
   address_house: Joi.string().min(1).max(50).required().messages({
     'string.min': 'Регион должен содержать минимум 1 символов',
     'string.max': 'Регион должен содержать максимум 50 символов',
-    'any.required': 'Регион является обязательным полен',
+    'any.required': 'Регион является обязательным полем',
   }),
-  address_building: Joi.string().min(1).max(50).messages({
-    'string.min': 'Корпус должен содержать минимум 1 символов',
+  address_building: Joi.string().allow(null).max(50).messages({
     'string.max': 'Корпус должен содержать максимум 50 символов',
   }),
-  address_apartment: Joi.string().min(1).max(50).required().messages({
-    'string.min': 'Квартира должна содержать минимум 1 символов',
+  address_apartment: Joi.string().allow(null).max(50).messages({
     'string.max': 'Квартира должна содержать максимум 50 символов',
-    'any.required': 'Квартира является обязательным полен',
   }),
 });
 
@@ -91,8 +87,7 @@ export const updateEmployeeSchema = Joi.object({
     'string.min': 'Фамилия должна содержать минимум 1 символ',
     'string.max': 'Фамилия должна содержать максимум 50 символов',
   }),
-  patronymic: Joi.string().min(1).max(50).messages({
-    'string.min': 'Отчество должно содержать минимум 1 символ',
+  patronymic: Joi.string().allow(null).max(50).messages({
     'string.max': 'Отчество должно содержать максимум 50 символов',
   }),
   birth_date: Joi.date().iso().max('now').messages({
@@ -137,12 +132,10 @@ export const updateEmployeeSchema = Joi.object({
     'string.min': 'Регион должен содержать минимум 1 символов',
     'string.max': 'Регион должен содержать максимум 50 символов',
   }),
-  address_building: Joi.string().min(1).max(50).messages({
-    'string.min': 'Корпус должен содержать минимум 1 символов',
+  address_building: Joi.string().allow(null).max(50).messages({
     'string.max': 'Корпус должен содержать максимум 50 символов',
   }),
-  address_apartment: Joi.string().min(1).max(50).messages({
-    'string.min': 'Квартира должна содержать минимум 1 символов',
+  address_apartment: Joi.string().allow(null).max(50).messages({
     'string.max': 'Квартира должна содержать максимум 50 символов',
   }),
 });
