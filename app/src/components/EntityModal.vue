@@ -12,17 +12,30 @@
           <q-input
             v-model="form.name"
             label="Название *"
-            :rules="[(val) => !!val || 'Обязательное поле']"
+            :rules="[
+              (val) => !!val || 'Обязательное поле',
+              (val) => val.length <= 255 || 'Максимум 255 символов',
+            ]"
             class="q-mb-md"
           />
-          <q-input v-model="form.comment" label="Комментарий" type="textarea" autogrow />
+          <q-input
+            v-model="form.comment"
+            label="Комментарий"
+            type="textarea"
+            :rules="[(val) => val.length <= 255 || 'Максимум 255 символов']"
+            maxlength="255"
+            autogrow
+          />
         </div>
 
         <div v-if="entityType === 'department'">
           <q-input
             v-model="form.name"
             label="Название *"
-            :rules="[(val) => !!val || 'Обязательное поле']"
+            :rules="[
+              (val) => !!val || 'Обязательное поле',
+              (val) => val.length <= 255 || 'Максимум 255 символов',
+            ]"
             class="q-mb-md"
           />
           <q-input
@@ -31,9 +44,12 @@
             type="textarea"
             autogrow
             class="q-mb-md"
+            :rules="[(val) => val.length <= 255 || 'Максимум 255 символов']"
+            maxlength="255"
+            hint="Необязательно"
           />
           <q-select
-            v-model="form.organizationId"
+            v-model="form.organization_id"
             :options="organizations"
             option-label="name"
             option-value="id"
@@ -44,22 +60,32 @@
             class="q-mb-md"
           />
           <q-select
-            v-model="form.parentDepartmentId"
-            :options="filteredDepartments"
-            option-label="name"
-            option-value="id"
+            v-model="form.parent_id"
+            :options="filteredDepartmentsByOrganizations"
             label="Родительский отдел"
             emit-value
             map-options
             clearable
-          />
+            hint="Необязательно"
+          >
+            <template v-slot:no-option>
+              <q-item>
+                <q-item-section class="text-italic text-grey">
+                  Нет отделов для выбранной организации
+                </q-item-section>
+              </q-item>
+            </template>
+          </q-select>
         </div>
 
         <div v-if="entityType === 'position'">
           <q-input
             v-model="form.name"
             label="Название *"
-            :rules="[(val) => !!val || 'Обязательное поле']"
+            :rules="[
+              (val) => !!val || 'Обязательное поле',
+              (val) => val.length <= 255 || 'Максимум 255 символов',
+            ]"
           />
         </div>
 
@@ -67,13 +93,19 @@
           <q-input
             v-model="form.last_name"
             label="Фамилия *"
-            :rules="[(val) => !!val || 'Обязательное поле']"
+            :rules="[
+              (val) => !!val || 'Обязательное поле',
+              (val) => val.length <= 50 || 'Максимум 50 символов',
+            ]"
             class="q-mb-md"
           />
           <q-input
             v-model="form.first_name"
             label="Имя *"
-            :rules="[(val) => !!val || 'Обязательное поле']"
+            :rules="[
+              (val) => !!val || 'Обязательное поле',
+              (val) => val.length <= 50 || 'Максимум 50 символов',
+            ]"
             class="q-mb-md"
           />
           <q-input
@@ -81,6 +113,7 @@
             label="Отчество"
             hint="Необязательно"
             class="q-mb-md"
+            :rules="[(val) => val.length <= 50 || 'Максимум 50 символов']"
           />
           <q-input
             v-model="form.birth_date"
@@ -169,12 +202,11 @@
             label="Кем выдан *"
             :rules="[
               (val) => !!val || 'Обязательное поле',
-              (val) => (val && val.length >= 5) || 'Минимум 5 символов',
+              (val) => val.length <= 255 || 'Максимум 255 символов',
             ]"
             type="textarea"
             autogrow
-            maxlength="500"
-            counter
+            maxlength="255"
             class="q-mb-md"
             clearable
           />
@@ -183,7 +215,7 @@
             label="Регион (область, край, республика) *"
             :rules="[
               (val) => !!val || 'Обязательное поле',
-              (val) => (val && val.length >= 3) || 'Минимум 3 символа',
+              (val) => val.length <= 50 || 'Максимум 50 символов',
             ]"
             class="q-mb-md"
             clearable
@@ -194,6 +226,7 @@
             :rules="[
               (val) => !!val || 'Обязательное поле',
               (val) => (val && val.length >= 2) || 'Минимум 2 символа',
+              (val) => val.length <= 50 || 'Максимум 50 символов',
             ]"
             class="q-mb-md"
             clearable
@@ -203,7 +236,7 @@
             label="Улица *"
             :rules="[
               (val) => !!val || 'Обязательное поле',
-              (val) => (val && val.length >= 2) || 'Минимум 2 символа',
+              (val) => val.length <= 50 || 'Максимум 50 символов',
             ]"
             class="q-mb-md"
             clearable
@@ -215,7 +248,7 @@
                 label="Дом *"
                 :rules="[
                   (val) => !!val || 'Обязательное поле',
-                  (val) => (val && val.length >= 1) || 'Введите номер дома',
+                  (val) => val.length <= 50 || 'Максимум 50 символов',
                 ]"
                 lazy-rules
                 clearable
@@ -232,9 +265,10 @@
           </div>
           <q-input
             v-model="form.address_apartment"
-            label="Квартира/офис"
-            hint="Необязательно"
+            label="Квартира"
             clearable
+            hint="Необязательно"
+            :rules="[(val) => val.length <= 50 || 'Максимум 50 символов']"
           />
         </div>
 
@@ -242,14 +276,15 @@
           <q-input
             v-model="form.name"
             label="Название *"
-            :rules="[(val) => !!val || 'Обязательное поле']"
+            :rules="[
+              (val) => !!val || 'Обязательное поле',
+              (val) => val.length <= 255 || 'Максимум 255 символов',
+            ]"
             class="q-mb-md"
           />
           <q-select
             v-model="form.employee_id"
             :options="employees"
-            option-label="name"
-            option-value="id"
             label="ID сотрудника *"
             emit-value
             map-options
@@ -262,19 +297,16 @@
           <q-select
             v-model="form.employee_id"
             :options="employees"
-            option-label="name"
-            option-value="id"
             label="ID сотрудника *"
             emit-value
             map-options
+            clearable
             :rules="[(val) => !!val || 'Обязательное поле']"
             class="q-mb-md"
           />
           <q-select
             v-model="form.operation_type"
-            :options="['Добавление', 'Увольнение', 'Изменение зарплаты', 'Изменение отдела']"
-            option-label="name"
-            option-value="id"
+            :options="operationTypes"
             label="Тип операции *"
             emit-value
             map-options
@@ -289,6 +321,7 @@
             label="ID отдела *"
             emit-value
             map-options
+            clearable
             hint="Необязательно"
             class="q-mb-md"
           />
@@ -300,15 +333,11 @@
             label="ID должности *"
             emit-value
             map-options
+            clearable
             hint="Необязательно"
             class="q-mb-md"
           />
-          <q-input
-            v-model="form.entity_type"
-            label="Зарплата"
-            hint="Необязательно"
-            class="q-mb-md"
-          />
+          <q-input v-model="form.salary" label="Зарплата" hint="Необязательно" class="q-mb-md" />
         </div>
       </q-card-section>
 
@@ -328,7 +357,6 @@ import type {
   EntityType,
   ModalMode,
   Position,
-  DepartmentForm,
   Employee,
   File,
   SaveData,
@@ -368,17 +396,13 @@ const showModal = computed<boolean>({
   set: (value: boolean) => emit('update:modelValue', value),
 });
 
-const $q = useQuasar();
-const organizations = ref<Organization[]>([]);
-const employees = ref<string[]>([]);
-const departments = ref<Department[]>([]);
-const positions = ref<Position[]>([]);
-const form = ref<FormData>({
+const emptyFormData = {
   id: -1,
   employee_id: null,
   name: '',
   comment: '',
-  organizationId: null,
+  organization_id: null,
+  parent_id: null,
   parentDepartmentId: null,
   first_name: '',
   last_name: '',
@@ -402,7 +426,21 @@ const form = ref<FormData>({
   entity_type: null,
   entity_id: null,
   changed_fields: [],
-});
+}
+
+const $q = useQuasar();
+const organizations = ref<Organization[]>([]);
+const employees = ref<Employee[]>([]);
+const departments = ref<Department[]>([]);
+const positions = ref<Position[]>([]);
+const form = ref<FormData>({ ...emptyFormData });
+
+const operationTypes = [
+  { label: 'Добавление', value: 'create' },
+  { label: 'Увольнение', value: 'dismissal' },
+  { label: 'Изменение зарплаты', value: 'salaryChanges' },
+  { label: 'Изменение отдела', value: 'departmentChanges' },
+];
 
 const modalTitle = computed<string>(() => {
   const typeNames: Record<EntityType, string> = {
@@ -418,13 +456,20 @@ const modalTitle = computed<string>(() => {
   return `${action} ${typeNames[props.entityType]}`;
 });
 
-const filteredDepartments = computed<Department[]>(() => {
-  if (!form.value.organizationId) return [];
+const filteredDepartmentsByOrganizations = computed<{ label: string; value: number }[]>(() => {
+  if (!form.value.organization_id) return [];
 
-  return departments.value.filter(
-    (dept: Department) =>
-      dept.organizationId === form.value.organizationId && dept.id !== form.value.id,
-  );
+  return departments.value
+    .filter(
+      (dept: Department) =>
+        dept.organization_id === form.value.organization_id &&
+        form.value.id !== dept.id &&
+        !dept.deleted_at,
+    )
+    .map((dept: Department) => ({
+      label: dept.name,
+      value: dept.id,
+    }));
 });
 
 const selectedBirthDate = ref<string>('');
@@ -453,10 +498,10 @@ const loadReferenceData = async (): Promise<void> => {
       employees: emps,
       positions: pos,
     } = await fetchReferenceData();
-    organizations.value = orgs;
-    departments.value = deps;
+    organizations.value = orgs.filter((org: Organization) => !org.deleted_at);
+    departments.value = deps.filter((dep: Department) => !dep.deleted_at);
     employees.value = emps;
-    positions.value = pos;
+    positions.value = pos.filter((pos: Position) => !pos.deleted_at);
   } catch (error) {
     console.error('Ошибка загрузки данных:', error);
     $q.notify('Ошибка загрузки данных');
@@ -464,36 +509,7 @@ const loadReferenceData = async (): Promise<void> => {
 };
 
 const resetForm = (): void => {
-  form.value = {
-    id: -1,
-    name: '',
-    comment: '',
-    organizationId: null,
-    parentDepartmentId: null,
-    first_name: '',
-    last_name: '',
-    patronymic: null,
-    birth_date: '',
-    passport_series: '',
-    passport_number: '',
-    passport_issue_date: '',
-    passport_division_code: '',
-    passport_issued_by: '',
-    address_region: '',
-    address_city: '',
-    address_street: '',
-    address_house: '',
-    address_building: null,
-    address_apartment: null,
-    employee_id: null,
-    entity_type: null,
-    entity_id: null,
-    changed_fields: [],
-    department_id: null,
-    position_id: null,
-    salary: null,
-    operation_type: null,
-  };
+  form.value = { ...emptyFormData };
 };
 
 const closeModal = (): void => {
@@ -502,7 +518,7 @@ const closeModal = (): void => {
 };
 
 const save = (): void => {
-  if (props.entityType === 'department' && !form.value.organizationId) {
+  if (props.entityType === 'department' && !form.value.organization_id) {
     return;
   }
 
@@ -524,16 +540,6 @@ watch(
   ) => {
     if (newData && props.mode === 'edit') {
       form.value = { ...newData };
-
-      if (props.entityType === 'department') {
-        const departmentData = newData as Department;
-        const departmentForm = form.value as DepartmentForm;
-        departmentForm.organizationId =
-          departmentData.organization?.id || departmentData.organizationId;
-        if (departmentData.parentDepartment?.id) {
-          departmentForm.parentDepartmentId = departmentData.parentDepartment?.id;
-        }
-      }
     }
   },
   { immediate: true },

@@ -25,13 +25,24 @@
     >
       <template v-slot:top>
         <q-space />
-        <q-btn color="primary" label="Добавить" :disable="isOpenHistory" @click="openAddModal" />
+        <q-btn 
+          color="primary" 
+          label="Добавить" 
+          :disable="isOpenHistory" 
+          @click="openAddModal"
+          :style="{
+            display: activeTab === 'history' ? 'none' : ''
+          }"
+        />
         <q-btn
           color="secondary"
           label="Изменить"
-          :disable="!hasSelection || isOpenEmploymentOperations"
+          :disable="!hasSelection"
           @click="editItem"
           class="q-ml-sm"
+          :style="{
+            display: activeTab === 'history' ? 'none' : ''
+          }"
         />
         <q-btn
           color="negative"
@@ -39,6 +50,9 @@
           :disable="!hasSelection"
           @click="openDeleteConfirm"
           class="q-ml-sm"
+          :style="{
+            display: activeTab === 'employmentOperation' ? 'none' : ''
+          }"
         />
       </template>
     </q-table>
@@ -177,13 +191,10 @@ const getOrganizationName = (department: Department): string => {
 };
 
 const getParentDepartmentName = (department: Department): string => {
-  const parentId = department.parentDepartment?.id;
+  const parentId = department.parent_id;
 
-  if (!parentId) {
-    return '-';
-  }
-  const parent =
-    department.parentDepartment || departments.value.find((item) => item.id === parentId);
+  const parent = departments.value.find((item) => item.id === parentId);
+
   return parent?.name || '-';
 };
 
@@ -193,208 +204,60 @@ const columns = computed<TableColumn[]>(() => {
       { name: 'id', label: 'ID', field: 'id', align: 'left', sortable: true },
       { name: 'name', label: 'Название', field: 'name', align: 'left', sortable: true },
       { name: 'comment', label: 'Комментарий', field: 'comment', align: 'left' },
-      {
-        name: 'created_at',
-        label: 'Создано',
-        field: (row: Entity) => formatDate((row as Organization).created_at),
-        align: 'left',
-      },
-      {
-        name: 'updated_at',
-        label: 'Изменено',
-        field: (row: Entity) => formatDate((row as Organization).updated_at),
-        align: 'left',
-      },
-      {
-        name: 'status',
-        label: 'Статус',
-        field: (row: Entity) => formatStatus((row as Organization).deleted_at ?? null),
-        align: 'left',
-      },
+      { name: 'created_at', label: 'Создано', field: (row: Entity) => formatDate((row as Organization).created_at), align: 'left' },
+      { name: 'updated_at', label: 'Изменено', field: (row: Entity) => formatDate((row as Organization).updated_at), align: 'left' },
+      { name: 'status', label: 'Статус', field: (row: Entity) => formatStatus((row as Organization).deleted_at ?? null), align: 'left', sortable: true },
     ],
     department: [
       { name: 'id', label: 'ID', field: 'id', align: 'left', sortable: true },
       { name: 'name', label: 'Название', field: 'name', align: 'left', sortable: true },
       { name: 'comment', label: 'Комментарий', field: 'comment', align: 'left' },
-      {
-        name: 'organization',
-        label: 'Организация',
-        field: (row: Entity) => getOrganizationName(row as Department),
-        align: 'left',
-      },
-      {
-        name: 'parent',
-        label: 'Родительский отдел',
-        field: (row: Entity) => getParentDepartmentName(row as Department),
-        align: 'left',
-      },
-      {
-        name: 'created_at',
-        label: 'Создано',
-        field: (row: Entity) => formatDate((row as Department).created_at),
-        align: 'left',
-      },
-      {
-        name: 'updated_at',
-        label: 'Изменено',
-        field: (row: Entity) => formatDate((row as Department).updated_at),
-        align: 'left',
-      },
-      {
-        name: 'status',
-        label: 'Статус',
-        field: (row: Entity) => formatStatus((row as Department).deleted_at ?? null),
-        align: 'left',
-      },
+      { name: 'organization', label: 'Организация', field: (row: Entity) => getOrganizationName(row as Department), align: 'left' },
+      { name: 'parent', label: 'Родительский отдел', field: (row: Entity) => getParentDepartmentName(row as Department), align: 'left' },
+      { name: 'created_at', label: 'Создано', field: (row: Entity) => formatDate((row as Department).created_at), align: 'left' },
+      { name: 'updated_at', label: 'Изменено', field: (row: Entity) => formatDate((row as Department).updated_at), align: 'left' },
+      { name: 'status', label: 'Статус', field: (row: Entity) => formatStatus((row as Department).deleted_at ?? null), align: 'left', sortable: true },
     ],
     position: [
       { name: 'id', label: 'ID', field: 'id', align: 'left', sortable: true },
       { name: 'name', label: 'Название', field: 'name', align: 'left', sortable: true },
-      {
-        name: 'created_at',
-        label: 'Создано',
-        field: (row: Entity) => formatDate((row as Position).created_at),
-        align: 'left',
-      },
-      {
-        name: 'updated_at',
-        label: 'Изменено',
-        field: (row: Entity) => formatDate((row as Position).updated_at),
-        align: 'left',
-      },
-      {
-        name: 'status',
-        label: 'Статус',
-        field: (row: Entity) => formatStatus((row as Position).deleted_at ?? null),
-        align: 'left',
-      },
+      { name: 'created_at', label: 'Создано', field: (row: Entity) => formatDate((row as Position).created_at), align: 'left' },
+      { name: 'updated_at', label: 'Изменено', field: (row: Entity) => formatDate((row as Position).updated_at), align: 'left' },
+      { name: 'status', label: 'Статус', field: (row: Entity) => formatStatus((row as Position).deleted_at ?? null), align: 'left', sortable: true },
     ],
     employee: [
       { name: 'id', label: 'ID', field: 'id', align: 'left', sortable: true },
       { name: 'fio', label: 'ФИО', field: 'fio', align: 'left', sortable: true },
       { name: 'passport', label: 'Паспорт', field: 'passport', align: 'left', sortable: true },
       { name: 'address', label: 'Адрес', field: 'address', align: 'left', sortable: true },
-      {
-        name: 'created_at',
-        label: 'Создано',
-        field: (row: Entity) => formatDate((row as Position).created_at),
-        align: 'left',
-      },
-      {
-        name: 'updated_at',
-        label: 'Изменено',
-        field: (row: Entity) => formatDate((row as Position).updated_at),
-        align: 'left',
-      },
-      {
-        name: 'status',
-        label: 'Статус',
-        field: (row: Entity) => formatStatus((row as Position).deleted_at ?? null),
-        align: 'left',
-      },
+      { name: 'created_at', label: 'Создано', field: (row: Entity) => formatDate((row as Employee).created_at), align: 'left' },
+      { name: 'updated_at', label: 'Изменено', field: (row: Entity) => formatDate((row as Employee).updated_at), align: 'left' },
+      { name: 'status', label: 'Статус', field: (row: Entity) => formatStatus((row as Employee).deleted_at ?? null), align: 'left', sortable: true },
     ],
     file: [
       { name: 'id', label: 'ID', field: 'id', align: 'left', sortable: true },
       { name: 'name', label: 'Название', field: 'name', align: 'left', sortable: true },
       { name: 'employee', label: 'Сотрудник', field: 'employee', align: 'left', sortable: true },
-      {
-        name: 'created_at',
-        label: 'Создано',
-        field: (row: Entity) => formatDate((row as Position).created_at),
-        align: 'left',
-      },
-      {
-        name: 'updated_at',
-        label: 'Изменено',
-        field: (row: Entity) => formatDate((row as Position).updated_at),
-        align: 'left',
-      },
-      {
-        name: 'status',
-        label: 'Статус',
-        field: (row: Entity) => formatStatus((row as Position).deleted_at ?? null),
-        align: 'left',
-      },
+      { name: 'created_at', label: 'Создано', field: (row: Entity) => formatDate((row as File).created_at), align: 'left' },
+      { name: 'updated_at', label: 'Изменено', field: (row: Entity) => formatDate((row as File).updated_at), align: 'left' },
+      { name: 'status', label: 'Статус', field: (row: Entity) => formatStatus((row as File).deleted_at ?? null), align: 'left', sortable: true },
     ],
     history: [
       { name: 'id', label: 'ID', field: 'id', align: 'left', sortable: true },
-      {
-        name: 'user_id',
-        label: 'ID Пользователя',
-        field: 'user_id',
-        align: 'left',
-        sortable: true,
-      },
-      {
-        name: 'entity_type',
-        label: 'Тип сущности',
-        field: 'entity_type',
-        align: 'left',
-        sortable: true,
-      },
-      {
-        name: 'entity_id',
-        label: 'ID сущности',
-        field: 'entity_id',
-        align: 'left',
-        sortable: true,
-      },
-      {
-        name: 'changed_fields',
-        label: 'Измененные поля',
-        field: 'changed_fields',
-        align: 'left',
-        sortable: true,
-      },
-      {
-        name: 'created_at',
-        label: 'Создано',
-        field: (row: Entity) => formatDate((row as Position).created_at),
-        align: 'left',
-      },
-      {
-        name: 'updated_at',
-        label: 'Изменено',
-        field: (row: Entity) => formatDate((row as Position).updated_at),
-        align: 'left',
-      },
-      {
-        name: 'status',
-        label: 'Статус',
-        field: (row: Entity) => formatStatus((row as Position).deleted_at ?? null),
-        align: 'left',
-      },
+      { name: 'user_id', label: 'ID Пользователя', field: 'user_id', align: 'left', sortable: true },
+      { name: 'entity_type', label: 'Тип сущности', field: 'entity_type', align: 'left', sortable: true },
+      { name: 'entity_id', label: 'ID сущности', field: 'entity_id', align: 'left', sortable: true },
+      { name: 'changed_fields', label: 'Измененные поля', field: 'changed_fields', align: 'left', sortable: true },
+      { name: 'created_at', label: 'Создано', field: (row: Entity) => formatDate((row as History).created_at), align: 'left' },
+      { name: 'updated_at', label: 'Изменено', field: (row: Entity) => formatDate((row as History).updated_at), align: 'left' },
+      { name: 'status', label: 'Статус', field: (row: Entity) => formatStatus((row as History).deleted_at ?? null), align: 'left', sortable: true },
     ],
     employmentOperation: [
       { name: 'id', label: 'ID', field: 'id', align: 'left', sortable: true },
-      {
-        name: 'employee_id',
-        label: 'ID сотрудника',
-        field: 'employee_id',
-        align: 'left',
-        sortable: true,
-      },
-      {
-        name: 'operation_type',
-        label: 'Тип операции',
-        field: 'operationType',
-        align: 'left',
-        sortable: true,
-      },
-      {
-        name: 'department_id',
-        label: 'ID отдела',
-        field: 'department_id',
-        align: 'left',
-        sortable: true,
-      },
-      {
-        name: 'position_id',
-        label: 'ID должности',
-        field: 'position_id',
-        align: 'left',
-        sortable: true,
-      },
+      { name: 'fio', label: 'Сотрудник', field: 'fio', align: 'left', sortable: true },
+      { name: 'operation_type', label: 'Тип операции', field: 'operationType', align: 'left', sortable: true },
+      { name: 'department_name', label: 'Отдел', field: 'department_name', align: 'left', sortable: true },
+      { name: 'position_name', label: 'Должность', field: 'position_name', align: 'left', sortable: true },
       { name: 'salary', label: 'Зарплата', field: 'salary', align: 'left', sortable: true },
     ],
   };
@@ -440,8 +303,8 @@ const loadData = async (): Promise<void> => {
     departments.value = deps.map((dept) => {
       const department: Department = { ...dept };
 
-      if (!department.organization && department.organizationId) {
-        department.organization = orgs.find((org) => org.id === department.organizationId) || null;
+      if (!department.organization && department.organization_id) {
+        department.organization = orgs.find((org) => org.id === department.organization_id) || null;
       }
 
       if (!department.parentDepartment && department.parentDepartmentId) {
@@ -462,13 +325,13 @@ const loadData = async (): Promise<void> => {
         ...employee,
         fio: `${employee.last_name} ${employee.first_name} ${employee.patronymic || ''} `,
         passport: `${employee.passport_series} ${employee.passport_number}, выдан ${employee.passport_issued_by}, код ${employee.passport_division_code}, дата ${passportIssueDate}`,
-        address: `Обл. ${employee.address_region}, г. ${employee.address_city}, ул. ${employee.address_street}, д. ${employee.address_house} ${employee.address_building ? 'ст. ' + employee.address_building : ''} ${employee.address_apartment ? ', кв. ' + employee.address_apartment : ''}`,
+        address: `Обл. ${employee.address_region}, г. ${employee.address_city}, ул. ${employee.address_street}, д. ${employee.address_house} ${employee.address_building ? 'стр. ' + employee.address_building : ''} ${employee.address_apartment ? ', кв. ' + employee.address_apartment : ''}`,
       };
     });
 
     files.value = fls.map((file) => {
       const foundEmployee = employees.value.find((emp) => emp.id === file.employee_id);
-      const employeeName = `(${foundEmployee?.id}) ${foundEmployee?.last_name} ${foundEmployee?.first_name} ${foundEmployee?.patronymic}`;
+      const employeeName = `${foundEmployee?.last_name} ${foundEmployee?.first_name} ${foundEmployee?.patronymic || ''}`;
 
       return {
         ...file,
@@ -541,17 +404,28 @@ const handleSave = async (payload: SavePayload): Promise<void> => {
       if (!editData.value) {
         return;
       }
-      await updateEntity(activeTab.value, payload);
+
+      if (activeTab.value === 'employmentOperation') {
+        await createEntity(activeTab.value, payload);
+      } else {
+        await updateEntity(activeTab.value, payload);
+      }
     } else {
       await createEntity(activeTab.value, payload);
     }
 
-    await loadData();
   } catch (error) {
-    console.error('Ошибка сохранения:', error);
-    $q.notify('Ошибка сохранения');
+    if (modalMode.value === 'add') {
+      console.error('Ошибка создания:', error);
+      $q.notify('Ошибка создания');
+    } else {
+      console.error('Ошибка сохранения:', error);
+      $q.notify('Ошибка сохранения');
+    }
     return;
   }
+
+  await loadData();
 
   showModal.value = false;
   selectedRows.value = [];

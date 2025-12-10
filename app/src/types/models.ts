@@ -13,9 +13,10 @@ export interface Department {
   comment: string;
   organizationId: number;
   parentDepartmentId?: number | null;
-  organization_id?: number | null;
+  organization_id: number;
   organization?: Organization | null;
   parentDepartment?: Department | null;
+  parent_id?: number | null;
   deleted_at?: string | null;
   created_at?: string;
   updated_at?: string | null;
@@ -74,9 +75,14 @@ export interface History {
 export interface EmploymentOperation {
   id: number;
   employee_id: number;
-  operation_type: OperationType;
   department_id?: number | null;
   position_id?: number | null;
+  employee_first_name: string;
+  employee_last_name: string;
+  employee_patronymic?: string | null;
+  operation_type: OperationType;
+  department_name?: string | null;
+  position_name?: string | null;
   salary?: number | null;
   deleted_at?: string | null;
   created_at?: string;
@@ -125,8 +131,7 @@ export interface SaveData {
   address_building?: string | null;
   address_apartment?: string | null;
   comment?: string;
-  organizationId?: number | null;
-  parentDepartmentId?: number | null;
+  organization_id?: number | null;
   salary?: number | null;
   operation_type?: OperationType | null;
   department_id?: number | null;
@@ -134,6 +139,7 @@ export interface SaveData {
   entity_type?: EntityType | null;
   entity_id?: number | null;
   changed_fields?: string | string[];
+  parent_id?: null | number;
 }
 
 export interface TableColumn {
@@ -154,7 +160,7 @@ export interface OrganizationForm {
 export interface DepartmentForm {
   name: string;
   comment: string;
-  organizationId: number | null;
+  organization_id: number | null;
   parentDepartmentId?: number | null;
 }
 
