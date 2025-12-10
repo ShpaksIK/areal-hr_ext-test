@@ -25,13 +25,13 @@
     >
       <template v-slot:top>
         <q-space />
-        <q-btn 
-          color="primary" 
-          label="Добавить" 
-          :disable="isOpenHistory" 
+        <q-btn
+          color="primary"
+          label="Добавить"
+          :disable="isOpenHistory"
           @click="openAddModal"
           :style="{
-            display: activeTab === 'history' ? 'none' : ''
+            display: activeTab === 'history' ? 'none' : '',
           }"
         />
         <q-btn
@@ -41,7 +41,7 @@
           @click="editItem"
           class="q-ml-sm"
           :style="{
-            display: activeTab === 'history' ? 'none' : ''
+            display: activeTab === 'history' ? 'none' : '',
           }"
         />
         <q-btn
@@ -51,7 +51,7 @@
           @click="openDeleteConfirm"
           class="q-ml-sm"
           :style="{
-            display: activeTab === 'employmentOperation' ? 'none' : ''
+            display: activeTab === 'employmentOperation' ? 'none' : '',
           }"
         />
       </template>
@@ -104,10 +104,10 @@ import type {
   ModalMode,
   Entity,
   Employee,
-  File,
   SaveData,
   History,
   EmploymentOperation,
+  FileType,
 } from '../types/models';
 import {
   fetchAllEntities,
@@ -123,16 +123,16 @@ const organizations = ref<Organization[]>([]);
 const departments = ref<Department[]>([]);
 const positions = ref<Position[]>([]);
 const employees = ref<Employee[]>([]);
-const files = ref<File[]>([]);
+const files = ref<FileType[]>([]);
 const history = ref<History[]>([]);
 const employmentOperation = ref<EmploymentOperation[]>([]);
 const selectedRows = ref<
-  (Organization | Department | Position | File | History | Employee | EmploymentOperation)[]
+  (Organization | Department | Position | FileType | History | Employee | EmploymentOperation)[]
 >([]);
 const showModal = ref<boolean>(false);
 const modalMode = ref<ModalMode>('add');
 const editData = ref<
-  Organization | Department | Position | Employee | File | History | EmploymentOperation | null
+  Organization | Department | Position | Employee | FileType | History | EmploymentOperation | null
 >(null);
 const showDeleteConfirm = ref<boolean>(false);
 const isDeleting = ref<boolean>(false);
@@ -204,60 +204,208 @@ const columns = computed<TableColumn[]>(() => {
       { name: 'id', label: 'ID', field: 'id', align: 'left', sortable: true },
       { name: 'name', label: 'Название', field: 'name', align: 'left', sortable: true },
       { name: 'comment', label: 'Комментарий', field: 'comment', align: 'left' },
-      { name: 'created_at', label: 'Создано', field: (row: Entity) => formatDate((row as Organization).created_at), align: 'left' },
-      { name: 'updated_at', label: 'Изменено', field: (row: Entity) => formatDate((row as Organization).updated_at), align: 'left' },
-      { name: 'status', label: 'Статус', field: (row: Entity) => formatStatus((row as Organization).deleted_at ?? null), align: 'left', sortable: true },
+      {
+        name: 'created_at',
+        label: 'Создано',
+        field: (row: Entity) => formatDate((row as Organization).created_at),
+        align: 'left',
+      },
+      {
+        name: 'updated_at',
+        label: 'Изменено',
+        field: (row: Entity) => formatDate((row as Organization).updated_at),
+        align: 'left',
+      },
+      {
+        name: 'status',
+        label: 'Статус',
+        field: (row: Entity) => formatStatus((row as Organization).deleted_at ?? null),
+        align: 'left',
+        sortable: true,
+      },
     ],
     department: [
       { name: 'id', label: 'ID', field: 'id', align: 'left', sortable: true },
       { name: 'name', label: 'Название', field: 'name', align: 'left', sortable: true },
       { name: 'comment', label: 'Комментарий', field: 'comment', align: 'left' },
-      { name: 'organization', label: 'Организация', field: (row: Entity) => getOrganizationName(row as Department), align: 'left' },
-      { name: 'parent', label: 'Родительский отдел', field: (row: Entity) => getParentDepartmentName(row as Department), align: 'left' },
-      { name: 'created_at', label: 'Создано', field: (row: Entity) => formatDate((row as Department).created_at), align: 'left' },
-      { name: 'updated_at', label: 'Изменено', field: (row: Entity) => formatDate((row as Department).updated_at), align: 'left' },
-      { name: 'status', label: 'Статус', field: (row: Entity) => formatStatus((row as Department).deleted_at ?? null), align: 'left', sortable: true },
+      {
+        name: 'organization',
+        label: 'Организация',
+        field: (row: Entity) => getOrganizationName(row as Department),
+        align: 'left',
+      },
+      {
+        name: 'parent',
+        label: 'Родительский отдел',
+        field: (row: Entity) => getParentDepartmentName(row as Department),
+        align: 'left',
+      },
+      {
+        name: 'created_at',
+        label: 'Создано',
+        field: (row: Entity) => formatDate((row as Department).created_at),
+        align: 'left',
+      },
+      {
+        name: 'updated_at',
+        label: 'Изменено',
+        field: (row: Entity) => formatDate((row as Department).updated_at),
+        align: 'left',
+      },
+      {
+        name: 'status',
+        label: 'Статус',
+        field: (row: Entity) => formatStatus((row as Department).deleted_at ?? null),
+        align: 'left',
+        sortable: true,
+      },
     ],
     position: [
       { name: 'id', label: 'ID', field: 'id', align: 'left', sortable: true },
       { name: 'name', label: 'Название', field: 'name', align: 'left', sortable: true },
-      { name: 'created_at', label: 'Создано', field: (row: Entity) => formatDate((row as Position).created_at), align: 'left' },
-      { name: 'updated_at', label: 'Изменено', field: (row: Entity) => formatDate((row as Position).updated_at), align: 'left' },
-      { name: 'status', label: 'Статус', field: (row: Entity) => formatStatus((row as Position).deleted_at ?? null), align: 'left', sortable: true },
+      {
+        name: 'created_at',
+        label: 'Создано',
+        field: (row: Entity) => formatDate((row as Position).created_at),
+        align: 'left',
+      },
+      {
+        name: 'updated_at',
+        label: 'Изменено',
+        field: (row: Entity) => formatDate((row as Position).updated_at),
+        align: 'left',
+      },
+      {
+        name: 'status',
+        label: 'Статус',
+        field: (row: Entity) => formatStatus((row as Position).deleted_at ?? null),
+        align: 'left',
+        sortable: true,
+      },
     ],
     employee: [
       { name: 'id', label: 'ID', field: 'id', align: 'left', sortable: true },
       { name: 'fio', label: 'ФИО', field: 'fio', align: 'left', sortable: true },
       { name: 'passport', label: 'Паспорт', field: 'passport', align: 'left', sortable: true },
       { name: 'address', label: 'Адрес', field: 'address', align: 'left', sortable: true },
-      { name: 'created_at', label: 'Создано', field: (row: Entity) => formatDate((row as Employee).created_at), align: 'left' },
-      { name: 'updated_at', label: 'Изменено', field: (row: Entity) => formatDate((row as Employee).updated_at), align: 'left' },
-      { name: 'status', label: 'Статус', field: (row: Entity) => formatStatus((row as Employee).deleted_at ?? null), align: 'left', sortable: true },
+      {
+        name: 'created_at',
+        label: 'Создано',
+        field: (row: Entity) => formatDate((row as Employee).created_at),
+        align: 'left',
+      },
+      {
+        name: 'updated_at',
+        label: 'Изменено',
+        field: (row: Entity) => formatDate((row as Employee).updated_at),
+        align: 'left',
+      },
+      {
+        name: 'status',
+        label: 'Статус',
+        field: (row: Entity) => formatStatus((row as Employee).deleted_at ?? null),
+        align: 'left',
+        sortable: true,
+      },
     ],
     file: [
       { name: 'id', label: 'ID', field: 'id', align: 'left', sortable: true },
       { name: 'name', label: 'Название', field: 'name', align: 'left', sortable: true },
       { name: 'employee', label: 'Сотрудник', field: 'employee', align: 'left', sortable: true },
-      { name: 'created_at', label: 'Создано', field: (row: Entity) => formatDate((row as File).created_at), align: 'left' },
-      { name: 'updated_at', label: 'Изменено', field: (row: Entity) => formatDate((row as File).updated_at), align: 'left' },
-      { name: 'status', label: 'Статус', field: (row: Entity) => formatStatus((row as File).deleted_at ?? null), align: 'left', sortable: true },
+      {
+        name: 'created_at',
+        label: 'Создано',
+        field: (row: Entity) => formatDate((row as FileType).created_at),
+        align: 'left',
+      },
+      {
+        name: 'updated_at',
+        label: 'Изменено',
+        field: (row: Entity) => formatDate((row as FileType).updated_at),
+        align: 'left',
+      },
+      {
+        name: 'status',
+        label: 'Статус',
+        field: (row: Entity) => formatStatus((row as FileType).deleted_at ?? null),
+        align: 'left',
+        sortable: true,
+      },
     ],
     history: [
       { name: 'id', label: 'ID', field: 'id', align: 'left', sortable: true },
-      { name: 'user_id', label: 'ID Пользователя', field: 'user_id', align: 'left', sortable: true },
-      { name: 'entity_type', label: 'Тип сущности', field: 'entity_type', align: 'left', sortable: true },
-      { name: 'entity_id', label: 'ID сущности', field: 'entity_id', align: 'left', sortable: true },
-      { name: 'changed_fields', label: 'Измененные поля', field: 'changed_fields', align: 'left', sortable: true },
-      { name: 'created_at', label: 'Создано', field: (row: Entity) => formatDate((row as History).created_at), align: 'left' },
-      { name: 'updated_at', label: 'Изменено', field: (row: Entity) => formatDate((row as History).updated_at), align: 'left' },
-      { name: 'status', label: 'Статус', field: (row: Entity) => formatStatus((row as History).deleted_at ?? null), align: 'left', sortable: true },
+      {
+        name: 'user_id',
+        label: 'ID Пользователя',
+        field: 'user_id',
+        align: 'left',
+        sortable: true,
+      },
+      {
+        name: 'entity_type',
+        label: 'Тип сущности',
+        field: 'entity_type',
+        align: 'left',
+        sortable: true,
+      },
+      {
+        name: 'entity_id',
+        label: 'ID сущности',
+        field: 'entity_id',
+        align: 'left',
+        sortable: true,
+      },
+      {
+        name: 'changed_fields',
+        label: 'Измененные поля',
+        field: 'changed_fields',
+        align: 'left',
+        sortable: true,
+      },
+      {
+        name: 'created_at',
+        label: 'Создано',
+        field: (row: Entity) => formatDate((row as History).created_at),
+        align: 'left',
+      },
+      {
+        name: 'updated_at',
+        label: 'Изменено',
+        field: (row: Entity) => formatDate((row as History).updated_at),
+        align: 'left',
+      },
+      {
+        name: 'status',
+        label: 'Статус',
+        field: (row: Entity) => formatStatus((row as History).deleted_at ?? null),
+        align: 'left',
+        sortable: true,
+      },
     ],
     employmentOperation: [
       { name: 'id', label: 'ID', field: 'id', align: 'left', sortable: true },
       { name: 'fio', label: 'Сотрудник', field: 'fio', align: 'left', sortable: true },
-      { name: 'operation_type', label: 'Тип операции', field: 'operationType', align: 'left', sortable: true },
-      { name: 'department_name', label: 'Отдел', field: 'department_name', align: 'left', sortable: true },
-      { name: 'position_name', label: 'Должность', field: 'position_name', align: 'left', sortable: true },
+      {
+        name: 'operation_type',
+        label: 'Тип операции',
+        field: 'operationType',
+        align: 'left',
+        sortable: true,
+      },
+      {
+        name: 'department_name',
+        label: 'Отдел',
+        field: 'department_name',
+        align: 'left',
+        sortable: true,
+      },
+      {
+        name: 'position_name',
+        label: 'Должность',
+        field: 'position_name',
+        align: 'left',
+        sortable: true,
+      },
       { name: 'salary', label: 'Зарплата', field: 'salary', align: 'left', sortable: true },
     ],
   };
@@ -413,7 +561,6 @@ const handleSave = async (payload: SavePayload): Promise<void> => {
     } else {
       await createEntity(activeTab.value, payload);
     }
-
   } catch (error) {
     if (modalMode.value === 'add') {
       console.error('Ошибка создания:', error);
@@ -451,6 +598,6 @@ watch(activeTab, () => {
 });
 
 const rowStyleFn = (row: Entity) => {
-  return row.deleted_at ? 'color: #ccc' : 'color: #000'
-}
+  return row.deleted_at ? 'color: #ccc' : 'color: #000';
+};
 </script>

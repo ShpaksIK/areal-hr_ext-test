@@ -7,7 +7,7 @@ export const createFileSchema = Joi.object({
     'any.required': 'Название является обязательным полем',
   }),
   employee_id: Joi.number().required().messages({
-    'any.required': 'Идентификатор файла является обязательным полем',
+    'any.required': 'Идентификатор сотрудника является обязательным полем',
   }),
 });
 

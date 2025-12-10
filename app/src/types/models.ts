@@ -52,7 +52,7 @@ export interface Employee {
   updated_at?: string | null;
 }
 
-export interface File {
+export interface FileType {
   id: number;
   name: string;
   employee_id: number;
@@ -105,7 +105,7 @@ export type Entity =
   | Department
   | Position
   | Employee
-  | File
+  | FileType
   | History
   | EmploymentOperation;
 
@@ -140,6 +140,7 @@ export interface SaveData {
   entity_id?: number | null;
   changed_fields?: string | string[];
   parent_id?: null | number;
+  file?: File | null;
 }
 
 export interface TableColumn {

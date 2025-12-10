@@ -291,6 +291,12 @@
             :rules="[(val) => !!val || 'Обязательное поле']"
             class="q-mb-md"
           />
+          <q-file
+            v-model="form.file"
+            label="Выберите файл *"
+            :rules="[(val) => !!val || 'Обязательное поле']"
+            class="q-mb-md"
+          />
         </div>
 
         <div v-if="entityType === 'employmentOperation'">
@@ -358,15 +364,13 @@ import type {
   ModalMode,
   Position,
   Employee,
-  File,
+  FileType,
   SaveData,
   History,
   EmploymentOperation,
 } from '../types/models';
 import { fetchReferenceData } from '../api/entities';
 import { useQuasar } from 'quasar';
-
-type FormData = SaveData;
 
 interface Props {
   modelValue: boolean;
@@ -377,7 +381,7 @@ interface Props {
     | Department
     | Position
     | Employee
-    | File
+    | FileType
     | History
     | EmploymentOperation
     | null;
@@ -385,7 +389,7 @@ interface Props {
 
 interface Emits {
   (e: 'update:modelValue', value: boolean): void;
-  (e: 'save', payload: FormData): void;
+  (e: 'save', payload: SaveData): void;
 }
 
 const props = defineProps<Props>();
@@ -426,14 +430,15 @@ const emptyFormData = {
   entity_type: null,
   entity_id: null,
   changed_fields: [],
-}
+  file: null,
+};
 
 const $q = useQuasar();
 const organizations = ref<Organization[]>([]);
 const employees = ref<Employee[]>([]);
 const departments = ref<Department[]>([]);
 const positions = ref<Position[]>([]);
-const form = ref<FormData>({ ...emptyFormData });
+const form = ref<SaveData>({ ...emptyFormData });
 
 const operationTypes = [
   { label: 'Добавление', value: 'create' },
@@ -522,6 +527,15 @@ const save = (): void => {
     return;
   }
 
+  // if (props.entityType === 'file' && form.value.file) {
+  //   const formData: FormData = new FormData();
+  //   formData.append('file', form.value.file);
+  //   formData.append('json', JSON.stringify({
+  //     name: form.value.name,
+  //     employee_id: form.value.employee_id
+  //   }))
+  // }
+
   emit('save', { ...form.value });
 };
 
@@ -533,7 +547,7 @@ watch(
       | Department
       | Position
       | Employee
-      | File
+      | FileType
       | History
       | EmploymentOperation
       | null,

@@ -4,7 +4,7 @@ import type {
   Department,
   Position,
   Employee,
-  File,
+  FileType,
   SaveData,
   History,
   EmploymentOperation,
@@ -62,14 +62,8 @@ const buildBody = (type: EntityType, payload: SaveData): Record<string, unknown>
     body.address_apartment = payload.address_apartment || null;
   }
 
-  if (type === 'file') {
-    const employeeId = String(payload.employee_id).slice(0, 1);
-    body.employee_id = Number(employeeId);
-  }
-
   if (type === 'employmentOperation') {
-    const employeeId = String(payload.employee_id).slice(0, 1);
-    body.employee_id = Number(employeeId);
+    body.employee_id = payload.employee_id;
     body.operation_type = payload.operation_type;
     body.department_id = payload.department_id || null;
     body.position_id = payload.position_id || null;
@@ -84,7 +78,7 @@ export const fetchAllEntities = async (): Promise<{
   departments: Department[];
   positions: Position[];
   employess: Employee[];
-  files: File[];
+  files: FileType[];
   history: History[];
   employmentOperation: EmploymentOperation[];
 }> => {
@@ -170,7 +164,7 @@ export const fetchAllEntities = async (): Promise<{
       return {
         ...h,
         changed_fields: h.changed_fields.join(', '),
-        entity_type: entityType
+        entity_type: entityType,
       };
     }
   });
@@ -291,6 +285,27 @@ export const updateEntity = async (type: EntityType, payload: SaveData): Promise
 };
 
 export const createEntity = async (type: EntityType, payload: SaveData): Promise<void> => {
+  if (type === 'file' && payload.file) {
+    const formData: FormData = new FormData();
+    formData.append('file', payload.file);
+    formData.append('name', String(payload.name));
+    formData.append('employee_id', JSON.stringify(payload.employee_id));
+
+    try {
+      const response = await fetch(endpoints[type], {
+        method: 'POST',
+        body: formData,
+      });
+
+      if (!response.ok) {
+        throw new Error('Ошибка создания');
+      }
+    } catch {
+      throw new Error('Ошибка создания');
+    }
+    return;
+  }
+
   const body = buildBody(type, payload);
 
   delete body.id;
