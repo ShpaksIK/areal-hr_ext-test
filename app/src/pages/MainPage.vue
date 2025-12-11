@@ -286,8 +286,8 @@ const columns = computed<TableColumn[]>(() => {
     employee: [
       { name: 'id', label: 'ID', field: 'id', align: 'left', sortable: true },
       { name: 'fio', label: 'ФИО', field: 'fio', align: 'left', sortable: true },
-      { name: 'passport', label: 'Паспорт', field: 'passport', align: 'left', sortable: true },
-      { name: 'address', label: 'Адрес', field: 'address', align: 'left', sortable: true },
+      { name: 'passport', label: 'Паспорт', field: 'passport', align: 'left', classes: 'text-wrap', sortable: true },
+      { name: 'address', label: 'Адрес', field: 'address', align: 'left', classes: 'text-wrap', sortable: true },
       {
         name: 'created_at',
         label: 'Создано',
@@ -360,18 +360,13 @@ const columns = computed<TableColumn[]>(() => {
         label: 'Измененные поля',
         field: 'changed_fields',
         align: 'left',
+        classes: 'text-wrap',
         sortable: true,
       },
       {
         name: 'created_at',
         label: 'Создано',
         field: (row: Entity) => formatDate((row as History).created_at),
-        align: 'left',
-      },
-      {
-        name: 'updated_at',
-        label: 'Изменено',
-        field: (row: Entity) => formatDate((row as History).updated_at),
         align: 'left',
       },
       {

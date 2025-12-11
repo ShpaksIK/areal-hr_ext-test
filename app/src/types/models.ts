@@ -148,6 +148,7 @@ export interface TableColumn {
   label: string;
   field: string | ((row: Entity) => string);
   align: 'left' | 'right' | 'center';
+  classes?: string;
   sortable?: boolean;
 }
 
