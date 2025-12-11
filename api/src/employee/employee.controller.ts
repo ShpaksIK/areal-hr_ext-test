@@ -102,6 +102,7 @@ export class EmployeeController {
     }
 
     await this.historyService.createHistory({
+      user_id: updateEmployeeDto.user_id,
       entity_type: 'employee',
       entity_id: updatedEmployee.data.id,
       changed_fields: updatedEmployee.changed_fields,

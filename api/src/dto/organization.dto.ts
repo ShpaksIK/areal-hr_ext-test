@@ -4,6 +4,7 @@ export class CreateOrganizationDto {
 }
 
 export class UpdateOrganizationDto extends CreateOrganizationDto {
+  readonly user_id: number;
   readonly id: number;
 }
 

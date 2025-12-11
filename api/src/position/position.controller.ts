@@ -102,6 +102,7 @@ export class PositionController {
     }
 
     await this.historyService.createHistory({
+      user_id: updatePositionDto.user_id,
       entity_type: 'position',
       entity_id: updatedPosition.data.id,
       changed_fields: updatedPosition.changed_fields,

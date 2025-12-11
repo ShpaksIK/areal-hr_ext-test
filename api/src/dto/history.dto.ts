@@ -4,10 +4,11 @@ export type EntityType =
   | 'position'
   | 'employee'
   | 'employmentOperation'
-  | 'file';
+  | 'file'
+  | 'user';
 
 export class CreateHistortyDto {
-  // readonly user_id: number;
+  readonly user_id: number;
   readonly entity_type: EntityType;
   readonly entity_id: number;
   readonly changed_fields: string;

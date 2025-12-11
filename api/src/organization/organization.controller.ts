@@ -103,6 +103,7 @@ export class OrganizationController {
     }
 
     await this.historyService.createHistory({
+      user_id: updateOrganizationDto.user_id,
       entity_type: 'organization',
       entity_id: updatedOrganization.data.id,
       changed_fields: updatedOrganization.changed_fields,

@@ -69,12 +69,15 @@ export class EmployeeService {
   async updateEmployee(
     employeeDto: UpdateEmployeeDto,
   ): Promise<{ data: Employee | null; changed_fields: string }> {
-    const dtoKeys = Object.keys(employeeDto);
+    const dto = { ...employeeDto };
+    delete dto.user_id;
+
+    const dtoKeys = Object.keys(dto);
 
     const setKeys = dtoKeys
       .map((key, index) => `${key} = $${index + 2}`)
       .join(', ');
-    const valuesKeys = Object.values(employeeDto);
+    const valuesKeys = Object.values(dto);
 
     const query = `
           UPDATE "employee"
@@ -82,7 +85,7 @@ export class EmployeeService {
           WHERE id = $1
           RETURNING *;
         `;
-    const values = [employeeDto.id, ...valuesKeys];
+    const values = [dto.id, ...valuesKeys];
 
     const result = await this.pool.query(query, values);
     const renamedFields = JSON.stringify(renameFields(dtoKeys));

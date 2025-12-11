@@ -55,12 +55,15 @@ export class DepartmentService {
   async updateDepartment(
     departmentDto: UpdateDepartmentDto,
   ): Promise<{ data: Department | null; changed_fields: string }> {
-    const dtoKeys = Object.keys(departmentDto);
+    const dto = { ...departmentDto };
+    delete dto.user_id;
+
+    const dtoKeys = Object.keys(dto);
 
     const setKeys = dtoKeys
       .map((key, index) => `${key} = $${index + 2}`)
       .join(', ');
-    const valuesKeys = Object.values(departmentDto);
+    const valuesKeys = Object.values(dto);
 
     const query = `
       UPDATE "department"
@@ -68,7 +71,7 @@ export class DepartmentService {
       WHERE id = $1
       RETURNING *;
     `;
-    const values = [departmentDto.id, ...valuesKeys];
+    const values = [dto.id, ...valuesKeys];
 
     const result = await this.pool.query(query, values);
     const renamedFields = JSON.stringify(renameFields(dtoKeys));

@@ -102,6 +102,7 @@ export class DepartmentController {
     }
 
     await this.historyService.createHistory({
+      user_id: updateDepartmentDto.user_id,
       entity_type: 'department',
       entity_id: updatedDepartment.data.id,
       changed_fields: updatedDepartment.changed_fields,

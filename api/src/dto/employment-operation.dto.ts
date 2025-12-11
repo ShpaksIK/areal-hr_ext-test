@@ -13,6 +13,7 @@ export class CreateEmploymentOperationDto {
 }
 
 export class UpdateEmploymentOperationDto extends CreateEmploymentOperationDto {
+  readonly user_id: number;
   readonly id: number;
 }
 

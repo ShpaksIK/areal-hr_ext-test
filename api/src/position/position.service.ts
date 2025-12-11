@@ -48,12 +48,15 @@ export class PositionService {
   async updatePosition(
     positionDto: UpdatePositionDto,
   ): Promise<{ data: Position | null; changed_fields: string }> {
-    const dtoKeys = Object.keys(positionDto);
+    const dto = { ...positionDto };
+    delete dto.user_id;
+
+    const dtoKeys = Object.keys(dto);
 
     const setKeys = dtoKeys
       .map((key, index) => `${key} = $${index + 2}`)
       .join(', ');
-    const valuesKeys = Object.values(positionDto);
+    const valuesKeys = Object.values(dto);
 
     const query = `
         UPDATE "position"
@@ -61,7 +64,7 @@ export class PositionService {
         WHERE id = $1
         RETURNING *;
     `;
-    const values = [positionDto.id, ...valuesKeys];
+    const values = [dto.id, ...valuesKeys];
 
     const result = await this.pool.query(query, values);
     const renamedFields = JSON.stringify(renameFields(dtoKeys));

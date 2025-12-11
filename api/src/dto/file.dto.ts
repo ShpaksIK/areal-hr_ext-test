@@ -8,6 +8,7 @@ export class UploadFileDto extends CreateFileDto {
 }
 
 export class UpdateFileDto extends CreateFileDto {
+  readonly user_id: number;
   readonly id: number;
 }
 

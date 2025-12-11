@@ -12,6 +12,9 @@ export const createFileSchema = Joi.object({
 });
 
 export const updateFileSchema = Joi.object({
+  user_id: Joi.number().required().messages({
+    'any.required': 'Идентификатор пользователя является обязательным полем',
+  }),
   id: Joi.number().required().messages({
     'any.required': 'Идентификатор файла является обязательным полем',
   }),

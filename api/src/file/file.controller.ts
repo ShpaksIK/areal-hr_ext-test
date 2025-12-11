@@ -114,6 +114,7 @@ export class FileController {
     }
 
     await this.historyService.createHistory({
+      user_id: updateFileDto.user_id,
       entity_type: 'file',
       entity_id: updatedFile.data.id,
       changed_fields: updatedFile.changed_fields,

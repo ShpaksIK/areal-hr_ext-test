@@ -50,12 +50,15 @@ export class OrganizationService {
   async updateOrganization(
     organizationDto: UpdateOrganizationDto,
   ): Promise<{ data: Organization | null; changed_fields: string }> {
-    const dtoKeys = Object.keys(organizationDto);
+    const dto = { ...organizationDto };
+    delete dto.user_id;
+
+    const dtoKeys = Object.keys(dto);
 
     const setKeys = dtoKeys
       .map((key, index) => `${key} = $${index + 2}`)
       .join(', ');
-    const valuesKeys = Object.values(organizationDto);
+    const valuesKeys = Object.values(dto);
 
     const query = `
       UPDATE "organization"
@@ -63,7 +66,7 @@ export class OrganizationService {
       WHERE id = $1
       RETURNING *;
     `;
-    const values = [organizationDto.id, ...valuesKeys];
+    const values = [dto.id, ...valuesKeys];
 
     const result = await this.pool.query(query, values);
     const renamedFields = JSON.stringify(renameFields(dtoKeys));

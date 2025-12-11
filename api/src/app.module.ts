@@ -8,6 +8,7 @@ import { EmployeeModule } from './employee/employee.module';
 import { FileModule } from './file/file.module';
 import { HistoryModule } from './history/history.module';
 import { EmploymentOperationModule } from './employment-operation/employment-operation.module';
+import { UserModule } from './user/user.module';
 
 @Module({
   imports: [
@@ -19,6 +20,7 @@ import { EmploymentOperationModule } from './employment-operation/employment-ope
     FileModule,
     HistoryModule,
     EmploymentOperationModule,
+    UserModule,
   ],
   providers: [DatabaseService],
 })

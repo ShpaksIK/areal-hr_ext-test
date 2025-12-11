@@ -6,6 +6,7 @@ export class CreateDepartmentDto {
 }
 
 export class UpdateDepartmentDto extends CreateDepartmentDto {
+  readonly user_id: number;
   readonly id: number;
 }
 

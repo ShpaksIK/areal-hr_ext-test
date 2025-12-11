@@ -3,6 +3,7 @@ export class CreatePositionDto {
 }
 
 export class UpdatePositionDto extends CreatePositionDto {
+  readonly user_id: number;
   readonly id: number;
 }
 
