@@ -91,6 +91,24 @@ export interface EmploymentOperation {
 
 export type OperationType = 'create' | 'salaryChanges' | 'departmentChanges' | 'dismissal';
 
+export interface User {
+  id: number;
+  first_name: string;
+  last_name: string;
+  patronymic?: string | null;
+  role_id: number;
+  role: string;
+  login?: string;
+  deleted_at?: string | null;
+  created_at?: string;
+  updated_at?: string | null;
+}
+
+export interface Role {
+  id: number;
+  name: string;
+}
+
 export type EntityType =
   | 'organization'
   | 'department'
@@ -98,7 +116,8 @@ export type EntityType =
   | 'employee'
   | 'file'
   | 'history'
-  | 'employmentOperation';
+  | 'employmentOperation'
+  | 'user';
 
 export type Entity =
   | Organization
@@ -107,7 +126,8 @@ export type Entity =
   | Employee
   | FileType
   | History
-  | EmploymentOperation;
+  | EmploymentOperation
+  | User;
 
 export type FieldFunction = (row: Entity) => string;
 
@@ -141,6 +161,10 @@ export interface SaveData {
   changed_fields?: string | string[];
   parent_id?: null | number;
   file?: File | null;
+  role_id?: number | null;
+  login?: string;
+  password?: string | null;
+  user_id?: number | null;
 }
 
 export interface TableColumn {

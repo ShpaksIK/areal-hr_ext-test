@@ -8,6 +8,7 @@
       <q-tab name="file" label="Файлы" />
       <q-tab name="employmentOperation" label="Кадровые операции" />
       <q-tab name="history" label="История" />
+      <q-tab name="user" label="Пользователи" />
     </q-tabs>
 
     <q-table
@@ -108,6 +109,7 @@ import type {
   History,
   EmploymentOperation,
   FileType,
+  User,
 } from '../types/models';
 import {
   fetchAllEntities,
@@ -116,6 +118,7 @@ import {
   createEntity,
 } from '../api/entities';
 import { useQuasar } from 'quasar';
+import '../api/create-test-entity';
 
 const $q = useQuasar();
 const activeTab = ref<EntityType>('organization');
@@ -125,14 +128,15 @@ const positions = ref<Position[]>([]);
 const employees = ref<Employee[]>([]);
 const files = ref<FileType[]>([]);
 const history = ref<History[]>([]);
+const users = ref<User[]>([]);
 const employmentOperation = ref<EmploymentOperation[]>([]);
 const selectedRows = ref<
-  (Organization | Department | Position | FileType | History | Employee | EmploymentOperation)[]
+  (Organization | Department | Position | FileType | History | Employee | EmploymentOperation | User)[]
 >([]);
 const showModal = ref<boolean>(false);
 const modalMode = ref<ModalMode>('add');
 const editData = ref<
-  Organization | Department | Position | Employee | FileType | History | EmploymentOperation | null
+  Organization | Department | Position | Employee | FileType | History | EmploymentOperation | User | null
 >(null);
 const showDeleteConfirm = ref<boolean>(false);
 const isDeleting = ref<boolean>(false);
@@ -168,6 +172,8 @@ const currentData = computed<Entity[]>(() => {
       return history.value;
     case 'employmentOperation':
       return employmentOperation.value;
+    case 'user':
+      return users.value;
     default:
       return [];
   }
@@ -403,6 +409,36 @@ const columns = computed<TableColumn[]>(() => {
       },
       { name: 'salary', label: 'Зарплата', field: 'salary', align: 'left', sortable: true },
     ],
+    user: [
+      { name: 'id', label: 'ID', field: 'id', align: 'left', sortable: true },
+      { name: 'fio', label: 'Пользователь', field: 'fio', align: 'left', sortable: true },
+      {
+        name: 'role',
+        label: 'Роль',
+        field: 'role',
+        align: 'left',
+        sortable: true,
+      },
+      {
+        name: 'created_at',
+        label: 'Создано',
+        field: (row: Entity) => formatDate((row as FileType).created_at),
+        align: 'left',
+      },
+      {
+        name: 'updated_at',
+        label: 'Изменено',
+        field: (row: Entity) => formatDate((row as FileType).updated_at),
+        align: 'left',
+      },
+      {
+        name: 'status',
+        label: 'Статус',
+        field: (row: Entity) => formatStatus((row as FileType).deleted_at ?? null),
+        align: 'left',
+        sortable: true,
+      },
+    ],
   };
 
   return baseColumns[activeTab.value] || [];
@@ -439,6 +475,7 @@ const loadData = async (): Promise<void> => {
       files: fls,
       history: hst,
       employmentOperation: empOp,
+      users: usrs,
     } = await fetchAllEntities();
 
     organizations.value = orgs;
@@ -484,6 +521,7 @@ const loadData = async (): Promise<void> => {
 
     history.value = hst;
     employmentOperation.value = empOp;
+    users.value = usrs;
   } catch (error) {
     console.error('Ошибка загрузки данных:', error);
     $q.notify('Ошибка загрузки данных');
@@ -504,6 +542,7 @@ const typeNames: Record<EntityType, string> = {
   file: 'файл',
   history: 'историю',
   employmentOperation: 'кадровую операцию',
+  user: 'пользователя'
 };
 
 const editItem = (): void => {

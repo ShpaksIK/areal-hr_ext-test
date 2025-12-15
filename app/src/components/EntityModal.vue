@@ -285,7 +285,7 @@
           <q-select
             v-model="form.employee_id"
             :options="employees"
-            label="ID сотрудника *"
+            label="Сотрудник *"
             emit-value
             map-options
             :rules="[(val) => !!val || 'Обязательное поле']"
@@ -303,7 +303,7 @@
           <q-select
             v-model="form.employee_id"
             :options="employees"
-            label="ID сотрудника *"
+            label="Сотрудник *"
             emit-value
             map-options
             clearable
@@ -324,7 +324,7 @@
             :options="departments"
             option-label="name"
             option-value="id"
-            label="ID отдела *"
+            label="Отдел *"
             emit-value
             map-options
             clearable
@@ -336,7 +336,7 @@
             :options="positions"
             option-label="name"
             option-value="id"
-            label="ID должности *"
+            label="Должность *"
             emit-value
             map-options
             clearable
@@ -344,6 +344,63 @@
             class="q-mb-md"
           />
           <q-input v-model="form.salary" label="Зарплата" hint="Необязательно" class="q-mb-md" />
+        </div>
+
+        <div v-if="entityType === 'user'">
+          <q-input
+            v-model="form.last_name"
+            label="Фамилия *"
+            :rules="[
+              (val) => !!val || 'Обязательное поле',
+              (val) => val.length <= 50 || 'Максимум 50 символов',
+            ]"
+            class="q-mb-md"
+          />
+          <q-input
+            v-model="form.first_name"
+            label="Имя *"
+            :rules="[
+              (val) => !!val || 'Обязательное поле',
+              (val) => val.length <= 50 || 'Максимум 50 символов',
+            ]"
+            class="q-mb-md"
+          />
+          <q-input
+            v-model="form.patronymic"
+            label="Отчество"
+            hint="Необязательно"
+            class="q-mb-md"
+            :rules="[(val) => val.length <= 50 || 'Максимум 50 символов']"
+          />
+          <q-select
+            v-model="form.role_id"
+            :options="rolesTable"
+            label="Роль *"
+            emit-value
+            map-options
+            :rules="[(val) => !!val || 'Обязательное поле']"
+            class="q-mb-md"
+          />
+          <q-input
+            v-model="form.login"
+            label="Логин"
+            class="q-mb-md"
+            :rules="[
+              (val) => !!val || 'Обязательное поле',
+              (val) => val.length <= 255 || 'Максимум 255 символов'
+            ]"
+          />
+          <q-input
+            v-model="form.password"
+            label="Пароль"
+            class="q-mb-md"
+            type="password"
+            :style="{ display: props.mode === 'edit' ? 'none' : '' }"
+            :rules="[
+              (val) => !!val || 'Обязательное поле',
+              (val) => val.length <= 255 || 'Максимум 255 символов'
+            ]"
+          />
         </div>
       </q-card-section>
 
@@ -368,6 +425,8 @@ import type {
   SaveData,
   History,
   EmploymentOperation,
+  User,
+  Role,
 } from '../types/models';
 import { fetchReferenceData } from '../api/entities';
 import { useQuasar } from 'quasar';
@@ -384,6 +443,7 @@ interface Props {
     | FileType
     | History
     | EmploymentOperation
+    | User
     | null;
 }
 
@@ -431,6 +491,8 @@ const emptyFormData = {
   entity_id: null,
   changed_fields: [],
   file: null,
+  password: null,
+  user_id: null,
 };
 
 const $q = useQuasar();
@@ -438,6 +500,11 @@ const organizations = ref<Organization[]>([]);
 const employees = ref<Employee[]>([]);
 const departments = ref<Department[]>([]);
 const positions = ref<Position[]>([]);
+const roles = ref<Role[]>([]);
+const rolesTable = ref<{
+  label: string;
+  value: number;
+}[]>([]);
 const form = ref<SaveData>({ ...emptyFormData });
 
 const operationTypes = [
@@ -456,6 +523,7 @@ const modalTitle = computed<string>(() => {
     file: 'файл',
     history: 'историю',
     employmentOperation: 'кадровую операцию',
+    user: 'пользователя'
   };
   const action = props.mode === 'add' ? 'Добавить' : 'Изменить';
   return `${action} ${typeNames[props.entityType]}`;
@@ -502,11 +570,17 @@ const loadReferenceData = async (): Promise<void> => {
       departments: deps,
       employees: emps,
       positions: pos,
+      roles: rols,
     } = await fetchReferenceData();
     organizations.value = orgs.filter((org: Organization) => !org.deleted_at);
     departments.value = deps.filter((dep: Department) => !dep.deleted_at);
     employees.value = emps;
     positions.value = pos.filter((pos: Position) => !pos.deleted_at);
+    roles.value = rols;
+    rolesTable.value = rols.map((role: Role) => ({
+      label: role.name,
+      value: role.id
+    }));
   } catch (error) {
     console.error('Ошибка загрузки данных:', error);
     $q.notify('Ошибка загрузки данных');
@@ -527,14 +601,9 @@ const save = (): void => {
     return;
   }
 
-  // if (props.entityType === 'file' && form.value.file) {
-  //   const formData: FormData = new FormData();
-  //   formData.append('file', form.value.file);
-  //   formData.append('json', JSON.stringify({
-  //     name: form.value.name,
-  //     employee_id: form.value.employee_id
-  //   }))
-  // }
+  if (props.mode === 'edit') {
+    form.value.user_id = 1;
+  }
 
   emit('save', { ...form.value });
 };
@@ -550,6 +619,7 @@ watch(
       | FileType
       | History
       | EmploymentOperation
+      | User
       | null,
   ) => {
     if (newData && props.mode === 'edit') {

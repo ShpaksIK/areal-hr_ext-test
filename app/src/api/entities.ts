@@ -8,6 +8,8 @@ import type {
   SaveData,
   History,
   EmploymentOperation,
+  User,
+  Role,
 } from '../types/models';
 
 const API_BASE = 'http://localhost:3000';
@@ -20,10 +22,13 @@ const endpoints = {
   file: `${API_BASE}/file`,
   history: `${API_BASE}/history`,
   employmentOperation: `${API_BASE}/employment-operation`,
+  user: `${API_BASE}/user`,
+  role: `${API_BASE}/user/roles`,
 };
 
 const buildBody = (type: EntityType, payload: SaveData): Record<string, unknown> => {
   const body: Record<string, unknown> = {};
+
   if (payload.id) {
     body.id = payload.id;
   }
@@ -70,6 +75,22 @@ const buildBody = (type: EntityType, payload: SaveData): Record<string, unknown>
     body.salary = Number(payload.salary);
   }
 
+  if (type === 'user') {
+    delete body.name;
+    body.first_name = payload.first_name;
+    body.last_name = payload.last_name;
+    body.patronymic = payload.patronymic || null;
+    body.role_id = payload.role_id;
+    body.login = payload.login;
+    if (payload.password) {
+      body.password = payload.password;
+    }
+  }
+
+  if (payload.user_id) {
+    body.user_id = payload.user_id;
+  }
+
   return body;
 };
 
@@ -81,6 +102,7 @@ export const fetchAllEntities = async (): Promise<{
   files: FileType[];
   history: History[];
   employmentOperation: EmploymentOperation[];
+  users: User[];
 }> => {
   const [
     orgsResponse,
@@ -90,6 +112,8 @@ export const fetchAllEntities = async (): Promise<{
     filesResponse,
     historyResponse,
     empOpResponse,
+    rolesResponse,
+    usersResponse,
   ] = await Promise.all([
     fetch(endpoints.organization),
     fetch(endpoints.department),
@@ -98,6 +122,8 @@ export const fetchAllEntities = async (): Promise<{
     fetch(endpoints.file),
     fetch(endpoints.history),
     fetch(endpoints.employmentOperation),
+    fetch(endpoints.role),
+    fetch(endpoints.user),
   ]);
 
   if (
@@ -107,7 +133,9 @@ export const fetchAllEntities = async (): Promise<{
     !empResponse.ok ||
     !filesResponse.ok ||
     !historyResponse.ok ||
-    !empOpResponse.ok
+    !empOpResponse.ok ||
+    !rolesResponse.ok ||
+    !usersResponse.ok
   ) {
     throw new Error('Ошибка загрузки данных');
   }
@@ -120,6 +148,8 @@ export const fetchAllEntities = async (): Promise<{
     files,
     historyRaw,
     employmentOperationRaw,
+    roles,
+    usersRaw,
   ] = await Promise.all([
     orgsResponse.json(),
     depsResponse.json(),
@@ -128,6 +158,8 @@ export const fetchAllEntities = async (): Promise<{
     filesResponse.json(),
     historyResponse.json(),
     empOpResponse.json(),
+    rolesResponse.json(),
+    usersResponse.json(),
   ]);
 
   const departments = departmentsRaw.data.map((dept: Department) => {
@@ -188,6 +220,14 @@ export const fetchAllEntities = async (): Promise<{
     };
   });
 
+  const users = usersRaw.data.map((user: User) => {
+    return {
+      ...user,
+      role: roles.data.find((role: Role) => role.id === user.role_id).name,
+      fio: `${user.last_name} ${user.first_name} ${user.patronymic || ''}`,
+    }
+  });
+
   return {
     organizations: organizations.data,
     departments,
@@ -196,6 +236,7 @@ export const fetchAllEntities = async (): Promise<{
     files: files.data,
     history,
     employmentOperation,
+    users
   };
 };
 
@@ -204,23 +245,26 @@ export const fetchReferenceData = async (): Promise<{
   departments: Department[];
   employees: Employee[];
   positions: Position[];
+  roles: Role[];
 }> => {
-  const [orgsResponse, depsResponse, empsResponse, posResponse] = await Promise.all([
+  const [orgsResponse, depsResponse, empsResponse, posResponse, rolesResponse] = await Promise.all([
     fetch(endpoints.organization),
     fetch(endpoints.department),
     fetch(endpoints.employee),
     fetch(endpoints.position),
+    fetch(endpoints.role),
   ]);
 
   if (!orgsResponse.ok || !depsResponse.ok || !empsResponse.ok || !posResponse.ok) {
     throw new Error('Ошибка загрузки справочных данных');
   }
 
-  const [organizationsRaw, departmentsRaw, employeesRaw, positionsRaw] = await Promise.all([
+  const [organizationsRaw, departmentsRaw, employeesRaw, positionsRaw, rolesRaw] = await Promise.all([
     orgsResponse.json(),
     depsResponse.json(),
     empsResponse.json(),
     posResponse.json(),
+    rolesResponse.json(),
   ]);
 
   const departments = departmentsRaw.data.map((dept: Department) => {
@@ -247,6 +291,7 @@ export const fetchReferenceData = async (): Promise<{
     departments,
     employees,
     positions: positionsRaw.data,
+    roles: rolesRaw.data,
   };
 };
 
