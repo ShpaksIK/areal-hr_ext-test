@@ -16,6 +16,7 @@ import { CreateUserDto, UpdateUserDto, User } from 'src/dto/user.dto';
 import { ValidationPipe } from 'src/validation/validation.pipe';
 import { createUserSchema, updateUserSchema } from 'src/schemas/user.schema';
 import { ParseIntPipe } from 'src/validation/parse-int.pipe';
+import { Role } from 'src/dto/role.dto';
 
 @Controller('user')
 export class UserController {
@@ -29,6 +30,19 @@ export class UserController {
     const data = await this.userService.getUsers();
 
     const response: ResponseDto<User[]> = {
+      success: true,
+      message: 'Успешно',
+      data: data,
+    };
+
+    return response;
+  }
+
+  @Get('/roles')
+  async getRoles(): Promise<ResponseDto<Role[]>> {
+    const data = await this.userService.getRoles();
+
+    const response: ResponseDto<Role[]> = {
       success: true,
       message: 'Успешно',
       data: data,

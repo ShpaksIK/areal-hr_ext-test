@@ -10,11 +10,19 @@ export class UserService {
   async getUsers() {
     const query = `
             SELECT
-                id, first_name, last_name, patronymic,
-                login, role_id, created_at, updated_at,
-                deleted_at
-            FROM "user";
+                "user".id, first_name, last_name, patronymic,
+                login, role_id, "role".name,
+                "user".created_at, updated_at, deleted_at
+            FROM "user"
+            JOIN "role" ON "user".role_id = "role".id;
         `;
+
+    const result = await this.pool.query(query);
+    return result.rows;
+  }
+
+  async getRoles() {
+    const query = `SELECT id, name FROM "role";`;
 
     const result = await this.pool.query(query);
     return result.rows;
