@@ -1,11 +1,27 @@
-import { Inject, Injectable } from '@nestjs/common';
+import { ConflictException, Inject, Injectable } from '@nestjs/common';
 import { Pool } from 'pg';
 import { CreateUserDto, UpdateUserDto, User } from 'src/dto/user.dto';
 import { renameFields } from 'src/helpers/rename-fields';
+import * as argon2 from 'argon2';
 
 @Injectable()
 export class UserService {
   constructor(@Inject('DATABASE_POOL') private readonly pool: Pool) {}
+
+  async hashPassword(password: string): Promise<string> {
+    try {
+      const hash = await argon2.hash(password, {
+        type: argon2.argon2id,
+        memoryCost: 2 ** 16,
+        timeCost: 3,
+        parallelism: 1,
+        hashLength: 32,
+      });
+      return hash;
+    } catch {
+      throw new ConflictException('Ошибка при хешировании пароля');
+    }
+  }
 
   async getUsers() {
     const query = `
@@ -29,6 +45,12 @@ export class UserService {
   }
 
   async createUser(userDto: CreateUserDto): Promise<User> {
+    const hashedPassword = await this.hashPassword(userDto.password);
+    const userData = {
+      ...userDto,
+      password: hashedPassword,
+    };
+
     const query = `
             INSERT INTO "user" (first_name, last_name, patronymic,
                 login, password_hash, role_id)
@@ -38,12 +60,12 @@ export class UserService {
                 deleted_at;
         `;
     const values = [
-      userDto.first_name,
-      userDto.last_name,
-      userDto.patronymic,
-      userDto.login,
-      userDto.password,
-      userDto.role_id,
+      userData.first_name,
+      userData.last_name,
+      userData.patronymic,
+      userData.login,
+      userData.password,
+      userData.role_id,
     ];
 
     const result = await this.pool.query(query, values);
