@@ -453,6 +453,7 @@ const columns = computed<TableColumn[]>(() => {
     user: [
       { name: 'id', label: 'ID', field: 'id', align: 'left', sortable: true },
       { name: 'fio', label: 'Пользователь', field: 'fio', align: 'left', sortable: true },
+      { name: 'login', label: 'Логин', field: 'login', align: 'left', sortable: true },
       {
         name: 'role',
         label: 'Роль',
