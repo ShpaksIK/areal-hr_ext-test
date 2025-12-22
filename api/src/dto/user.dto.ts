@@ -18,7 +18,7 @@ export interface User {
   last_name: string;
   patronymic: string | null;
   login: string;
-  password: string;
+  password_hash: string;
   role_id: number;
   created_at: Date;
   updated_at: Date | null;

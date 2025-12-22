@@ -9,6 +9,7 @@ import { FileModule } from './file/file.module';
 import { HistoryModule } from './history/history.module';
 import { EmploymentOperationModule } from './employment-operation/employment-operation.module';
 import { UserModule } from './user/user.module';
+import { AuthModule } from './auth/auth.module';
 
 @Module({
   imports: [
@@ -21,7 +22,9 @@ import { UserModule } from './user/user.module';
     HistoryModule,
     EmploymentOperationModule,
     UserModule,
+    AuthModule,
   ],
   providers: [DatabaseService],
+  controllers: [],
 })
 export class AppModule {}
