@@ -25,6 +25,12 @@
       :table-row-style-fn="rowStyleFn"
     >
       <template v-slot:top>
+        <q-btn
+          color="dark"
+          label="Выйти"
+          @click="onLogout"
+          class="q-ml-sm"
+        />
         <q-space />
         <q-btn
           color="primary"
@@ -118,9 +124,13 @@ import {
   createEntity,
 } from '../api/entities';
 import { useQuasar } from 'quasar';
+import { useRouter } from 'vue-router';
 import '../api/create-test-entity';
+import { getAuthToken, setAuthToken } from 'src/api/local-storage';
 
 const $q = useQuasar();
+const router = useRouter();
+
 const activeTab = ref<EntityType>('organization');
 const organizations = ref<Organization[]>([]);
 const departments = ref<Department[]>([]);
@@ -498,6 +508,10 @@ const formatDate = (value?: string | null): string => {
 
 const loadData = async (): Promise<void> => {
   try {
+    const token = getAuthToken();
+    if (!token) {
+      await router.push('/login');
+    }
     const {
       organizations: orgs,
       departments: deps,
@@ -643,6 +657,11 @@ const handleSave = async (payload: SavePayload): Promise<void> => {
   selectedRows.value = [];
   editData.value = null;
 };
+
+const onLogout = async () => {
+  setAuthToken('');
+  await router.push('/login');
+}
 
 onMounted(loadData);
 

@@ -12,7 +12,7 @@ import type {
   Role,
   LoginFormType,
 } from '../types/models';
-import { getAuthToken } from './local-storage';
+import { getAuthToken, setAuthToken } from './local-storage';
 
 const API_BASE = 'http://localhost:3000';
 
@@ -143,9 +143,7 @@ export const fetchAllEntities = async (): Promise<{
     !empResponse.ok ||
     !filesResponse.ok ||
     !historyResponse.ok ||
-    !empOpResponse.ok ||
-    !rolesResponse.ok ||
-    !usersResponse.ok
+    !empOpResponse.ok
   ) {
     throw new Error('Ошибка загрузки данных');
   }
@@ -171,6 +169,11 @@ export const fetchAllEntities = async (): Promise<{
     rolesResponse.json(),
     usersResponse.json(),
   ]);
+
+  if (usersRaw.statusCode === 401) {
+    setAuthToken('');
+    throw new Error('Срок действия токена истек. Войдите заново')
+  }
 
   const departments = departmentsRaw.data.map((dept: Department) => {
     const normalized: Department = {
