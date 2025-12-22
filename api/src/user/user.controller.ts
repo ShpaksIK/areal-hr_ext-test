@@ -7,6 +7,7 @@ import {
   Param,
   Post,
   Put,
+  UseGuards,
   UsePipes,
 } from '@nestjs/common';
 import { UserService } from './user.service';
@@ -17,6 +18,7 @@ import { ValidationPipe } from 'src/validation/validation.pipe';
 import { createUserSchema, updateUserSchema } from 'src/schemas/user.schema';
 import { ParseIntPipe } from 'src/validation/parse-int.pipe';
 import { Role } from 'src/dto/role.dto';
+import { SessionAuthGuard } from 'src/guard/session-auth.guard';
 
 @Controller('user')
 export class UserController {
@@ -26,6 +28,7 @@ export class UserController {
   ) {}
 
   @Get()
+  @UseGuards(SessionAuthGuard)
   async getAll(): Promise<ResponseDto<User[]>> {
     const data = await this.userService.getUsers();
 
@@ -39,6 +42,7 @@ export class UserController {
   }
 
   @Get('/roles')
+  @UseGuards(SessionAuthGuard)
   async getRoles(): Promise<ResponseDto<Role[]>> {
     const data = await this.userService.getRoles();
 
@@ -68,6 +72,7 @@ export class UserController {
   }
 
   @Put()
+  @UseGuards(SessionAuthGuard)
   @UsePipes(new ValidationPipe(updateUserSchema))
   async update(
     @Body() updatedUserDto: UpdateUserDto,
@@ -100,6 +105,7 @@ export class UserController {
   }
 
   @Delete('/:userId')
+  @UseGuards(SessionAuthGuard)
   async delete(
     @Param('userId', new ParseIntPipe()) userId: number,
   ): Promise<ResponseDto<User>> {

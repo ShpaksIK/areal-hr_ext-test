@@ -1,26 +1,46 @@
-import { ConflictException, Inject, Injectable } from '@nestjs/common';
+import { Inject, Injectable } from '@nestjs/common';
 import { Pool } from 'pg';
+import { AuthService } from 'src/auth/auth.service';
 import { CreateUserDto, UpdateUserDto, User } from 'src/dto/user.dto';
 import { renameFields } from 'src/helpers/rename-fields';
-import * as argon2 from 'argon2';
 
 @Injectable()
 export class UserService {
-  constructor(@Inject('DATABASE_POOL') private readonly pool: Pool) {}
+  constructor(
+    @Inject('DATABASE_POOL') private readonly pool: Pool,
+    private authService: AuthService,
+  ) {}
 
-  async hashPassword(password: string): Promise<string> {
-    try {
-      const hash = await argon2.hash(password, {
-        type: argon2.argon2id,
-        memoryCost: 2 ** 16,
-        timeCost: 3,
-        parallelism: 1,
-        hashLength: 32,
-      });
-      return hash;
-    } catch {
-      throw new ConflictException('Ошибка при хешировании пароля');
-    }
+  async getByLogin(login: string): Promise<User> {
+    const query = `
+      SELECT
+          "user".id, first_name, last_name, patronymic,
+          login, password_hash, role_id, "role".name,
+          "user".created_at, updated_at, deleted_at
+      FROM "user"
+      JOIN "role" ON "user".role_id = "role".id
+      WHERE "user".login = $1;
+    `;
+    const values = [login];
+
+    const result = await this.pool.query(query, values);
+    return result.rows[0];
+  }
+
+  async getById(id: number): Promise<Omit<User, 'password'>> {
+    const query = `
+      SELECT
+          "user".id, first_name, last_name, patronymic,
+          login, role_id, "role".name,
+          "user".created_at, updated_at, deleted_at
+      FROM "user"
+      JOIN "role" ON "user".role_id = "role".id
+      WHERE "user".id = $1;
+    `;
+    const values = [id];
+
+    const result = await this.pool.query(query, values);
+    return result.rows[0];
   }
 
   async getUsers() {
@@ -45,10 +65,12 @@ export class UserService {
   }
 
   async createUser(userDto: CreateUserDto): Promise<User> {
-    const hashedPassword = await this.hashPassword(userDto.password);
+    const hashedPassword = await this.authService.hashPassword(
+      userDto.password,
+    );
     const userData = {
       ...userDto,
-      password: hashedPassword,
+      hashedPassword,
     };
 
     const query = `
@@ -64,7 +86,7 @@ export class UserService {
       userData.last_name,
       userData.patronymic,
       userData.login,
-      userData.password,
+      userData.hashedPassword,
       userData.role_id,
     ];
 
