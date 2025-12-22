@@ -387,7 +387,7 @@
             class="q-mb-md"
             :rules="[
               (val) => !!val || 'Обязательное поле',
-              (val) => val.length <= 255 || 'Максимум 255 символов'
+              (val) => val.length <= 255 || 'Максимум 255 символов',
             ]"
           />
           <q-input
@@ -398,7 +398,8 @@
             :style="{ display: props.mode === 'edit' ? 'none' : '' }"
             :rules="[
               (val) => !!val || 'Обязательное поле',
-              (val) => val.length <= 255 || 'Максимум 255 символов'
+              (val) => val.length >= 5 || 'Минимум 6 символов',
+              (val) => val.length <= 255 || 'Максимум 255 символов',
             ]"
           />
         </div>
@@ -501,10 +502,12 @@ const employees = ref<Employee[]>([]);
 const departments = ref<Department[]>([]);
 const positions = ref<Position[]>([]);
 const roles = ref<Role[]>([]);
-const rolesTable = ref<{
-  label: string;
-  value: number;
-}[]>([]);
+const rolesTable = ref<
+  {
+    label: string;
+    value: number;
+  }[]
+>([]);
 const form = ref<SaveData>({ ...emptyFormData });
 
 const operationTypes = [
@@ -523,7 +526,7 @@ const modalTitle = computed<string>(() => {
     file: 'файл',
     history: 'историю',
     employmentOperation: 'кадровую операцию',
-    user: 'пользователя'
+    user: 'пользователя',
   };
   const action = props.mode === 'add' ? 'Добавить' : 'Изменить';
   return `${action} ${typeNames[props.entityType]}`;
@@ -579,7 +582,7 @@ const loadReferenceData = async (): Promise<void> => {
     roles.value = rols;
     rolesTable.value = rols.map((role: Role) => ({
       label: role.name,
-      value: role.id
+      value: role.id,
     }));
   } catch (error) {
     console.error('Ошибка загрузки данных:', error);

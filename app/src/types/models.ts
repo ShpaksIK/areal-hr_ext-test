@@ -193,3 +193,8 @@ export interface DepartmentForm {
 export interface PositionForm {
   name: string;
 }
+
+export interface LoginFormType {
+  login: string;
+  password: string;
+}

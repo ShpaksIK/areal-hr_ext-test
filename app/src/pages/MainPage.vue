@@ -131,12 +131,29 @@ const history = ref<History[]>([]);
 const users = ref<User[]>([]);
 const employmentOperation = ref<EmploymentOperation[]>([]);
 const selectedRows = ref<
-  (Organization | Department | Position | FileType | History | Employee | EmploymentOperation | User)[]
+  (
+    | Organization
+    | Department
+    | Position
+    | FileType
+    | History
+    | Employee
+    | EmploymentOperation
+    | User
+  )[]
 >([]);
 const showModal = ref<boolean>(false);
 const modalMode = ref<ModalMode>('add');
 const editData = ref<
-  Organization | Department | Position | Employee | FileType | History | EmploymentOperation | User | null
+  | Organization
+  | Department
+  | Position
+  | Employee
+  | FileType
+  | History
+  | EmploymentOperation
+  | User
+  | null
 >(null);
 const showDeleteConfirm = ref<boolean>(false);
 const isDeleting = ref<boolean>(false);
@@ -292,8 +309,22 @@ const columns = computed<TableColumn[]>(() => {
     employee: [
       { name: 'id', label: 'ID', field: 'id', align: 'left', sortable: true },
       { name: 'fio', label: 'ФИО', field: 'fio', align: 'left', sortable: true },
-      { name: 'passport', label: 'Паспорт', field: 'passport', align: 'left', classes: 'text-wrap', sortable: true },
-      { name: 'address', label: 'Адрес', field: 'address', align: 'left', classes: 'text-wrap', sortable: true },
+      {
+        name: 'passport',
+        label: 'Паспорт',
+        field: 'passport',
+        align: 'left',
+        classes: 'text-wrap',
+        sortable: true,
+      },
+      {
+        name: 'address',
+        label: 'Адрес',
+        field: 'address',
+        align: 'left',
+        classes: 'text-wrap',
+        sortable: true,
+      },
       {
         name: 'created_at',
         label: 'Создано',
@@ -542,7 +573,7 @@ const typeNames: Record<EntityType, string> = {
   file: 'файл',
   history: 'историю',
   employmentOperation: 'кадровую операцию',
-  user: 'пользователя'
+  user: 'пользователя',
 };
 
 const editItem = (): void => {
