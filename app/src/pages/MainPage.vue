@@ -8,13 +8,13 @@
       <q-tab name="file" label="Файлы" />
       <q-tab name="employmentOperation" label="Кадровые операции" />
       <q-tab name="history" label="История" />
-      <q-tab 
-        name="user" 
-        label="Пользователи" 
-        :style = "{
-          display: userRole.name !== 'Администратор' ? 'none': '',
+      <q-tab
+        name="user"
+        label="Пользователи"
+        :style="{
+          display: userRole.name !== 'Администратор' ? 'none' : '',
         }"
-        />
+      />
     </q-tabs>
 
     <q-table
@@ -31,12 +31,7 @@
       :table-row-style-fn="rowStyleFn"
     >
       <template v-slot:top>
-        <q-btn
-          color="dark"
-          label="Выйти"
-          @click="onLogout"
-          class="q-ml-sm"
-        />
+        <q-btn color="dark" label="Выйти" @click="onLogout" class="q-ml-sm" />
         <q-space />
         <q-btn
           color="primary"
@@ -140,8 +135,9 @@ const $q = useQuasar();
 const router = useRouter();
 
 const userRole = ref<Role>({
-  'id': -1,
-  'name': ''
+  id: -1,
+  name: '',
+  user_id: -1,
 });
 const activeTab = ref<EntityType>('organization');
 const organizations = ref<Organization[]>([]);
@@ -476,19 +472,19 @@ const columns = computed<TableColumn[]>(() => {
       {
         name: 'created_at',
         label: 'Создано',
-        field: (row: Entity) => formatDate((row as FileType).created_at),
+        field: (row: Entity) => formatDate((row as User).created_at),
         align: 'left',
       },
       {
         name: 'updated_at',
         label: 'Изменено',
-        field: (row: Entity) => formatDate((row as FileType).updated_at),
+        field: (row: Entity) => formatDate((row as User).updated_at),
         align: 'left',
       },
       {
         name: 'status',
         label: 'Статус',
-        field: (row: Entity) => formatStatus((row as FileType).deleted_at ?? null),
+        field: (row: Entity) => formatStatus((row as User).deleted_at ?? null),
         align: 'left',
         sortable: true,
       },
@@ -528,9 +524,10 @@ const loadData = async (): Promise<void> => {
       }
       userRole.value = {
         name: me.data.name,
-        id: me.data.role_id
-      }
-      console.log(userRole)
+        id: me.data.role_id,
+        user_id: me.data.id,
+      };
+      console.log(userRole);
     } catch {
       setAuthToken('');
       await router.push('/login');
@@ -590,7 +587,13 @@ const loadData = async (): Promise<void> => {
 
     history.value = hst;
     employmentOperation.value = empOp;
-    users.value = usrs;
+    users.value = usrs.map((user: User) => {
+      const fio = `${user.last_name} ${user.first_name} ${user.patronymic || ''}`;
+      return {
+        ...user,
+        fio: user.id === userRole.value.user_id ? `${fio} (Вы)` : fio,
+      };
+    });
   } catch (error) {
     console.error('Ошибка загрузки данных:', error);
     $q.notify('Ошибка загрузки данных');
@@ -685,7 +688,7 @@ const handleSave = async (payload: SavePayload): Promise<void> => {
 const onLogout = async () => {
   setAuthToken('');
   await router.push('/login');
-}
+};
 
 onMounted(loadData);
 

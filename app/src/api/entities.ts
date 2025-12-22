@@ -112,9 +112,9 @@ export const fetchAllEntities = async (): Promise<{
   const init = {
     method: 'GET',
     headers: {
-      'Authorization': `Bearer ${token}`
-    }
-  }
+      Authorization: `Bearer ${token}`,
+    },
+  };
   const [
     orgsResponse,
     depsResponse,
@@ -265,9 +265,9 @@ export const fetchReferenceData = async (): Promise<{
   const init = {
     method: 'GET',
     headers: {
-      'Authorization': `Bearer ${token}`
-    }
-  }
+      Authorization: `Bearer ${token}`,
+    },
+  };
   const [orgsResponse, depsResponse, empsResponse, posResponse, rolesResponse] = await Promise.all([
     fetch(endpoints.organization, init),
     fetch(endpoints.department, init),
@@ -323,8 +323,8 @@ export const deleteEntity = async (type: EntityType, id: number): Promise<void> 
     const response = await fetch(`${endpoints[type]}/${id}`, {
       method: 'DELETE',
       headers: {
-        'Authorization': `Bearer ${token}`
-      }
+        Authorization: `Bearer ${token}`,
+      },
     });
 
     if (!response.ok) {
@@ -344,7 +344,7 @@ export const updateEntity = async (type: EntityType, payload: SaveData): Promise
       method: 'PUT',
       headers: {
         'Content-Type': 'application/json',
-        'Authorization': `Bearer ${token}`
+        Authorization: `Bearer ${token}`,
       },
       body: JSON.stringify(body),
     });
@@ -370,7 +370,7 @@ export const createEntity = async (type: EntityType, payload: SaveData): Promise
         method: 'POST',
         body: formData,
         headers: {
-          'Authorization': `Bearer ${token}`
+          Authorization: `Bearer ${token}`,
         },
       });
 
@@ -393,7 +393,7 @@ export const createEntity = async (type: EntityType, payload: SaveData): Promise
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        'Authorization': `Bearer ${token}`
+        Authorization: `Bearer ${token}`,
       },
       body: JSON.stringify(body),
     });
@@ -412,13 +412,13 @@ export const login = async (payload: LoginFormType) => {
     headers: {
       'Content-Type': 'application/json',
     },
-    body: JSON.stringify(payload)
+    body: JSON.stringify(payload),
   });
 
   const responseRaw = await response.json();
 
   return responseRaw;
-}
+};
 
 export const getMe = async () => {
   const token = getAuthToken();
@@ -428,10 +428,10 @@ export const getMe = async () => {
       'Content-Type': 'application/json',
     },
     body: JSON.stringify({
-      'token': token
-    })
+      token: token,
+    }),
   });
 
   const responseRaw = await response.json();
   return responseRaw;
-}
+};

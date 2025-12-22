@@ -158,7 +158,7 @@ const onSubmit = async () => {
   try {
     const response = await login({
       login: form.login.trim(),
-      password: form.password
+      password: form.password,
     });
 
     if (!response.success) {

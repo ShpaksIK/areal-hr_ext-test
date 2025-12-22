@@ -107,6 +107,7 @@ export interface User {
 export interface Role {
   id: number;
   name: string;
+  user_id: number;
 }
 
 export type EntityType =
