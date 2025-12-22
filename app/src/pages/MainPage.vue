@@ -8,7 +8,13 @@
       <q-tab name="file" label="Файлы" />
       <q-tab name="employmentOperation" label="Кадровые операции" />
       <q-tab name="history" label="История" />
-      <q-tab name="user" label="Пользователи" />
+      <q-tab 
+        name="user" 
+        label="Пользователи" 
+        :style = "{
+          display: userRole.name !== 'Администратор' ? 'none': '',
+        }"
+        />
     </q-tabs>
 
     <q-table
@@ -116,21 +122,27 @@ import type {
   EmploymentOperation,
   FileType,
   User,
+  Role,
 } from '../types/models';
 import {
   fetchAllEntities,
   deleteEntity as apiDeleteEntity,
   updateEntity,
   createEntity,
+  getMe,
 } from '../api/entities';
 import { useQuasar } from 'quasar';
 import { useRouter } from 'vue-router';
 import '../api/create-test-entity';
-import { getAuthToken, setAuthToken } from 'src/api/local-storage';
+import { setAuthToken } from 'src/api/local-storage';
 
 const $q = useQuasar();
 const router = useRouter();
 
+const userRole = ref<Role>({
+  'id': -1,
+  'name': ''
+});
 const activeTab = ref<EntityType>('organization');
 const organizations = ref<Organization[]>([]);
 const departments = ref<Department[]>([]);
@@ -509,10 +521,21 @@ const formatDate = (value?: string | null): string => {
 
 const loadData = async (): Promise<void> => {
   try {
-    const token = getAuthToken();
-    if (!token) {
+    try {
+      const me = await getMe();
+      if (!me.success) {
+        throw new Error('Срок действия токена истек. Войдите заново');
+      }
+      userRole.value = {
+        name: me.data.name,
+        id: me.data.role_id
+      }
+      console.log(userRole)
+    } catch {
+      setAuthToken('');
       await router.push('/login');
     }
+
     const {
       organizations: orgs,
       departments: deps,

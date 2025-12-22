@@ -27,6 +27,7 @@ const endpoints = {
   user: `${API_BASE}/user`,
   role: `${API_BASE}/user/roles`,
   auth: `${API_BASE}/auth/login`,
+  getMe: `${API_BASE}/auth/validate-session`,
 };
 
 const buildBody = (type: EntityType, payload: SaveData): Record<string, unknown> => {
@@ -172,7 +173,7 @@ export const fetchAllEntities = async (): Promise<{
 
   if (usersRaw.statusCode === 401) {
     setAuthToken('');
-    throw new Error('Срок действия токена истек. Войдите заново')
+    throw new Error('Срок действия токена истек. Войдите заново');
   }
 
   const departments = departmentsRaw.data.map((dept: Department) => {
@@ -416,5 +417,21 @@ export const login = async (payload: LoginFormType) => {
 
   const responseRaw = await response.json();
 
+  return responseRaw;
+}
+
+export const getMe = async () => {
+  const token = getAuthToken();
+  const response = await fetch(endpoints.getMe, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({
+      'token': token
+    })
+  });
+
+  const responseRaw = await response.json();
   return responseRaw;
 }
