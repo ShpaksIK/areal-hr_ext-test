@@ -10,7 +10,9 @@ import type {
   EmploymentOperation,
   User,
   Role,
+  LoginFormType,
 } from '../types/models';
+import { getAuthToken } from './local-storage';
 
 const API_BASE = 'http://localhost:3000';
 
@@ -24,6 +26,7 @@ const endpoints = {
   employmentOperation: `${API_BASE}/employment-operation`,
   user: `${API_BASE}/user`,
   role: `${API_BASE}/user/roles`,
+  auth: `${API_BASE}/auth/login`,
 };
 
 const buildBody = (type: EntityType, payload: SaveData): Record<string, unknown> => {
@@ -104,6 +107,13 @@ export const fetchAllEntities = async (): Promise<{
   employmentOperation: EmploymentOperation[];
   users: User[];
 }> => {
+  const token = getAuthToken();
+  const init = {
+    method: 'GET',
+    headers: {
+      'Authorization': `Bearer ${token}`
+    }
+  }
   const [
     orgsResponse,
     depsResponse,
@@ -115,15 +125,15 @@ export const fetchAllEntities = async (): Promise<{
     rolesResponse,
     usersResponse,
   ] = await Promise.all([
-    fetch(endpoints.organization),
-    fetch(endpoints.department),
-    fetch(endpoints.position),
-    fetch(endpoints.employee),
-    fetch(endpoints.file),
-    fetch(endpoints.history),
-    fetch(endpoints.employmentOperation),
-    fetch(endpoints.role),
-    fetch(endpoints.user),
+    fetch(endpoints.organization, init),
+    fetch(endpoints.department, init),
+    fetch(endpoints.position, init),
+    fetch(endpoints.employee, init),
+    fetch(endpoints.file, init),
+    fetch(endpoints.history, init),
+    fetch(endpoints.employmentOperation, init),
+    fetch(endpoints.role, init),
+    fetch(endpoints.user, init),
   ]);
 
   if (
@@ -225,7 +235,7 @@ export const fetchAllEntities = async (): Promise<{
       ...user,
       role: roles.data.find((role: Role) => role.id === user.role_id).name,
       fio: `${user.last_name} ${user.first_name} ${user.patronymic || ''}`,
-    }
+    };
   });
 
   return {
@@ -236,7 +246,7 @@ export const fetchAllEntities = async (): Promise<{
     files: files.data,
     history,
     employmentOperation,
-    users
+    users,
   };
 };
 
@@ -247,25 +257,33 @@ export const fetchReferenceData = async (): Promise<{
   positions: Position[];
   roles: Role[];
 }> => {
+  const token = getAuthToken();
+  const init = {
+    method: 'GET',
+    headers: {
+      'Authorization': `Bearer ${token}`
+    }
+  }
   const [orgsResponse, depsResponse, empsResponse, posResponse, rolesResponse] = await Promise.all([
-    fetch(endpoints.organization),
-    fetch(endpoints.department),
-    fetch(endpoints.employee),
-    fetch(endpoints.position),
-    fetch(endpoints.role),
+    fetch(endpoints.organization, init),
+    fetch(endpoints.department, init),
+    fetch(endpoints.employee, init),
+    fetch(endpoints.position, init),
+    fetch(endpoints.role, init),
   ]);
 
   if (!orgsResponse.ok || !depsResponse.ok || !empsResponse.ok || !posResponse.ok) {
     throw new Error('Ошибка загрузки справочных данных');
   }
 
-  const [organizationsRaw, departmentsRaw, employeesRaw, positionsRaw, rolesRaw] = await Promise.all([
-    orgsResponse.json(),
-    depsResponse.json(),
-    empsResponse.json(),
-    posResponse.json(),
-    rolesResponse.json(),
-  ]);
+  const [organizationsRaw, departmentsRaw, employeesRaw, positionsRaw, rolesRaw] =
+    await Promise.all([
+      orgsResponse.json(),
+      depsResponse.json(),
+      empsResponse.json(),
+      posResponse.json(),
+      rolesResponse.json(),
+    ]);
 
   const departments = departmentsRaw.data.map((dept: Department) => {
     const normalized: Department = {
@@ -297,8 +315,12 @@ export const fetchReferenceData = async (): Promise<{
 
 export const deleteEntity = async (type: EntityType, id: number): Promise<void> => {
   try {
+    const token = getAuthToken();
     const response = await fetch(`${endpoints[type]}/${id}`, {
       method: 'DELETE',
+      headers: {
+        'Authorization': `Bearer ${token}`
+      }
     });
 
     if (!response.ok) {
@@ -313,10 +335,12 @@ export const updateEntity = async (type: EntityType, payload: SaveData): Promise
   const body = buildBody(type, payload);
 
   try {
+    const token = getAuthToken();
     const response = await fetch(`${endpoints[type]}`, {
       method: 'PUT',
       headers: {
         'Content-Type': 'application/json',
+        'Authorization': `Bearer ${token}`
       },
       body: JSON.stringify(body),
     });
@@ -337,9 +361,13 @@ export const createEntity = async (type: EntityType, payload: SaveData): Promise
     formData.append('employee_id', JSON.stringify(payload.employee_id));
 
     try {
+      const token = getAuthToken();
       const response = await fetch(endpoints[type], {
         method: 'POST',
         body: formData,
+        headers: {
+          'Authorization': `Bearer ${token}`
+        },
       });
 
       if (!response.ok) {
@@ -356,10 +384,12 @@ export const createEntity = async (type: EntityType, payload: SaveData): Promise
   delete body.id;
 
   try {
+    const token = getAuthToken();
     const response = await fetch(endpoints[type], {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
+        'Authorization': `Bearer ${token}`
       },
       body: JSON.stringify(body),
     });
@@ -371,3 +401,17 @@ export const createEntity = async (type: EntityType, payload: SaveData): Promise
     throw new Error('Ошибка создания');
   }
 };
+
+export const login = async (payload: LoginFormType) => {
+  const response = await fetch(endpoints.auth, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify(payload)
+  });
+
+  const responseRaw = await response.json();
+
+  return responseRaw;
+}

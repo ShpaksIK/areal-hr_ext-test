@@ -1,4 +1,4 @@
-import { createEntity } from "./entities";
+import { createEntity } from './entities';
 
 try {
   const result = createEntity('user', {
