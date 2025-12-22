@@ -2,6 +2,11 @@
 
 Веб-приложение, с помощью которого специалист по кадрам может вести учет сотрудников в нескольких организациях.
 
+## Роли
+В системе доступны 2 роли:
+- Администратор: доступно управление пользователями (создание новых менеджеров, регулирование прав доступа), кадровыми операциями.
+- Менеджер по персоналу: доступно управление кадровыми операциями.
+
 ## Технологический стек
 
 ### Операционная система
@@ -18,7 +23,8 @@ Ubuntu 24.04 LTS с установленным Docker
 
 ### Backend
 - NestJS (10)
-- pg, node-pg-migrate, joi
+- pg, node-pg-migrate, joi, multer
+- passport, passport-local, argon2
 
 ### Frontend
 - Vue (3.5)
@@ -85,11 +91,12 @@ git clone https://github.com/ShpaksIK/areal-hr_ext-test.git
 cd areal-hr_ext-test
 ```
 
-2. Скопируйте .env файл и запустите Backend
+2. Скопируйте .env файл, примените миграцию и запустите Backend
 ```bash
 cd api
 cp .env.example .env
 npm install
+npm run migrate:up
 npm run dev
 ```
 
@@ -100,22 +107,10 @@ npm install
 npm run dev
 ```
 
-## Разработка
-
-### Backend
-
-```bash
-cd api
-npm install
-npm run start
+4. Для доступа к тестовой учетной записи введите в поля:
 ```
-
-### Frontend
-
-```bash
-cd app
-npm install
-npm run dev
+Логин: admin
+Пароль: admin
 ```
 
 ## Миграция базы данных
