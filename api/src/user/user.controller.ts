@@ -1,5 +1,6 @@
 import {
   Body,
+  ConflictException,
   Controller,
   Delete,
   Get,
@@ -60,15 +61,19 @@ export class UserController {
   async create(
     @Body() createUserDto: CreateUserDto,
   ): Promise<ResponseDto<User>> {
-    const createdUser = await this.userService.createUser(createUserDto);
+    try {
+      const createdUser = await this.userService.createUser(createUserDto);
 
-    const response: ResponseDto<User> = {
-      success: true,
-      message: 'Успешно',
-      data: createdUser,
-    };
+      const response: ResponseDto<User> = {
+        success: true,
+        message: 'Успешно',
+        data: createdUser,
+      };
 
-    return response;
+      return response;
+    } catch {
+      throw new ConflictException('Такой пользователь уже существует');
+    }
   }
 
   @Put()
