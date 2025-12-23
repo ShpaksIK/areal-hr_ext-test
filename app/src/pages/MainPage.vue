@@ -527,7 +527,6 @@ const loadData = async (): Promise<void> => {
         id: me.data.role_id,
         user_id: me.data.id,
       };
-      console.log(userRole);
     } catch {
       setAuthToken('');
       await router.push('/login');

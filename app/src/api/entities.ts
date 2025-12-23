@@ -209,7 +209,7 @@ export const fetchAllEntities = async (): Promise<{
     if (typeof h.changed_fields === 'object') {
       return {
         ...h,
-        changed_fields: h.changed_fields.join(', '),
+        changed_fields: h.changed_fields?.join(', '),
         entity_type: entityType,
       };
     }
@@ -426,6 +426,7 @@ export const getMe = async () => {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
+      Authorization: `Bearer ${token}`,
     },
     body: JSON.stringify({
       token: token,
