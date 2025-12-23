@@ -58,12 +58,21 @@ export class UserController {
   }
 
   @Post()
+  @UseGuards(SessionAuthGuard)
   @UsePipes(new ValidationPipe(createUserSchema))
   async create(
     @Body() createUserDto: CreateUserDto,
+    @Req() req: any,
   ): Promise<ResponseDto<User>> {
     try {
       const createdUser = await this.userService.createUser(createUserDto);
+
+      await this.historyService.createHistory({
+        user_id: req.user.id,
+        entity_type: 'user',
+        entity_id: createdUser.id,
+        changed_fields: '["Создано"]',
+      });
 
       const response: ResponseDto<User> = {
         success: true,
