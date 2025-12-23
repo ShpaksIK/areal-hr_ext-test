@@ -11,7 +11,7 @@ export class CreateHistortyDto {
   readonly user_id: number;
   readonly entity_type: EntityType;
   readonly entity_id: number;
-  readonly changed_fields: string;
+  readonly changed_fields?: string;
 }
 
 export interface Historty {

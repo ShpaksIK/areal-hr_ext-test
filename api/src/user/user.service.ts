@@ -1,4 +1,4 @@
-import { Inject, Injectable } from '@nestjs/common';
+import { Inject, Injectable, forwardRef } from '@nestjs/common';
 import { Pool } from 'pg';
 import { AuthService } from 'src/auth/auth.service';
 import { CreateUserDto, UpdateUserDto, User } from 'src/dto/user.dto';
@@ -8,6 +8,7 @@ import { renameFields } from 'src/helpers/rename-fields';
 export class UserService {
   constructor(
     @Inject('DATABASE_POOL') private readonly pool: Pool,
+    @Inject(forwardRef(() => AuthService))
     private authService: AuthService,
   ) {}
 
