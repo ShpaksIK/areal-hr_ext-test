@@ -128,7 +128,6 @@ import {
 } from '../api/entities';
 import { useQuasar } from 'quasar';
 import { useRouter } from 'vue-router';
-import '../api/create-test-entity';
 import { setAuthToken } from 'src/api/local-storage';
 
 const $q = useQuasar();

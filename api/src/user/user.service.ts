@@ -1,16 +1,42 @@
-import { Inject, Injectable, forwardRef } from '@nestjs/common';
+import {
+  Inject,
+  Injectable,
+  OnApplicationBootstrap,
+  forwardRef,
+} from '@nestjs/common';
 import { Pool } from 'pg';
 import { AuthService } from 'src/auth/auth.service';
 import { CreateUserDto, UpdateUserDto, User } from 'src/dto/user.dto';
 import { renameFields } from 'src/helpers/rename-fields';
+import { config } from 'dotenv';
+
+config();
 
 @Injectable()
-export class UserService {
+export class UserService implements OnApplicationBootstrap {
   constructor(
     @Inject('DATABASE_POOL') private readonly pool: Pool,
     @Inject(forwardRef(() => AuthService))
     private authService: AuthService,
   ) {}
+
+  async onApplicationBootstrap() {
+    const shouldCreateTestUser = process.env.CREATE_TEST_USER;
+    if (shouldCreateTestUser === 'true') {
+      try {
+        await this.createUser({
+          last_name: 'Иванов',
+          first_name: 'Иван',
+          patronymic: 'Иванович',
+          login: 'admin',
+          password: 'admin',
+          role_id: 1,
+        });
+      } catch {
+        console.log('Тестовый пользователь уже создан');
+      }
+    }
+  }
 
   async getByLogin(login: string): Promise<User> {
     const query = `
