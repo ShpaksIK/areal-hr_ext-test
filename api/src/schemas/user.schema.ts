@@ -26,9 +26,6 @@ export const createUserSchema = Joi.object({
 });
 
 export const updateUserSchema = Joi.object({
-  user_id: Joi.number().required().messages({
-    'any.required': 'Идентификатор пользователя является обязательным полем',
-  }),
   id: Joi.number().required().messages({
     'any.required': 'Идентификатор отдела является обязательным полем',
   }),

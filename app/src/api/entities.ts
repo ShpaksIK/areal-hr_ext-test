@@ -91,10 +91,6 @@ const buildBody = (type: EntityType, payload: SaveData): Record<string, unknown>
     }
   }
 
-  if (payload.user_id) {
-    body.user_id = payload.user_id;
-  }
-
   return body;
 };
 
