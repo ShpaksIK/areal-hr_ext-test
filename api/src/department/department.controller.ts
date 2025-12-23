@@ -7,6 +7,8 @@ import {
   Param,
   Post,
   Put,
+  Req,
+  UseGuards,
   UsePipes,
 } from '@nestjs/common';
 import { DepartmentService } from './department.service';
@@ -23,6 +25,7 @@ import {
 import { HistoryService } from 'src/history/history.service';
 import { ResponseDto } from 'src/dto/response.dto';
 import { ParseIntPipe } from 'src/validation/parse-int.pipe';
+import { SessionAuthGuard } from 'src/guard/session-auth.guard';
 
 @Controller('department')
 export class DepartmentController {
@@ -32,6 +35,7 @@ export class DepartmentController {
   ) {}
 
   @Get('/:departmentId')
+  @UseGuards(SessionAuthGuard)
   async getById(
     @Param('departmentId', new ParseIntPipe()) departmentId: number,
   ): Promise<ResponseDto<Department | null>> {
@@ -51,10 +55,12 @@ export class DepartmentController {
       message: 'Успешно',
       data: data,
     };
+
     return response;
   }
 
   @Get()
+  @UseGuards(SessionAuthGuard)
   async getAll(): Promise<ResponseDto<Department[]>> {
     const data = await this.departmentService.getDepartments();
 
@@ -68,9 +74,11 @@ export class DepartmentController {
   }
 
   @Post()
+  @UseGuards(SessionAuthGuard)
   @UsePipes(new ValidationPipe(createDepartmentSchema))
   async create(
     @Body() createDepartmentDto: CreateDepartmentDto,
+    @Req() req: any,
   ): Promise<ResponseDto<Department>> {
     const createdDepartment =
       await this.departmentService.createDepartment(createDepartmentDto);
@@ -81,13 +89,22 @@ export class DepartmentController {
       data: createdDepartment,
     };
 
+    await this.historyService.createHistory({
+      user_id: req.user.id,
+      entity_type: 'department',
+      entity_id: createdDepartment.id,
+      changed_fields: '["Создано"]',
+    });
+
     return response;
   }
 
   @Put()
+  @UseGuards(SessionAuthGuard)
   @UsePipes(new ValidationPipe(updateDepartmentSchema))
   async update(
     @Body() updateDepartmentDto: UpdateDepartmentDto,
+    @Req() req: any,
   ): Promise<ResponseDto<Department | null>> {
     const updatedDepartment =
       await this.departmentService.updateDepartment(updateDepartmentDto);
@@ -102,7 +119,7 @@ export class DepartmentController {
     }
 
     await this.historyService.createHistory({
-      user_id: updateDepartmentDto.user_id,
+      user_id: req.user.id,
       entity_type: 'department',
       entity_id: updatedDepartment.data.id,
       changed_fields: updatedDepartment.changed_fields,
@@ -118,8 +135,10 @@ export class DepartmentController {
   }
 
   @Delete('/:departmentId')
+  @UseGuards(SessionAuthGuard)
   async delete(
     @Param('departmentId', new ParseIntPipe()) departmentId: number,
+    @Req() req: any,
   ): Promise<ResponseDto<Department>> {
     const deletedDepartment =
       await this.departmentService.deleteDepartment(departmentId);
@@ -129,6 +148,13 @@ export class DepartmentController {
       message: 'Успешно',
       data: deletedDepartment,
     };
+
+    await this.historyService.createHistory({
+      user_id: req.user.id,
+      entity_type: 'department',
+      entity_id: departmentId,
+      changed_fields: '["Удалено"]',
+    });
 
     return response;
   }

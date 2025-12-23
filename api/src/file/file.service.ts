@@ -79,7 +79,7 @@ export class FileService {
     const query = `
           INSERT INTO "file" (name, employee_id, file_path, original_name, mime_type, size)
           VALUES ($1, $2, $3, $4, $5, $6)
-          RETURNING name, employee_id, file_path, original_name, mime_type, size;
+          RETURNING *;
         `;
     const values = [
       uploadFileDto.name,

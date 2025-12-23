@@ -8,6 +8,7 @@ import {
   Param,
   Post,
   Put,
+  Req,
   UseGuards,
   UsePipes,
 } from '@nestjs/common';
@@ -57,12 +58,21 @@ export class UserController {
   }
 
   @Post()
+  @UseGuards(SessionAuthGuard)
   @UsePipes(new ValidationPipe(createUserSchema))
   async create(
     @Body() createUserDto: CreateUserDto,
+    @Req() req: any,
   ): Promise<ResponseDto<User>> {
     try {
       const createdUser = await this.userService.createUser(createUserDto);
+
+      await this.historyService.createHistory({
+        user_id: req.user.id,
+        entity_type: 'user',
+        entity_id: createdUser.id,
+        changed_fields: '["Создано"]',
+      });
 
       const response: ResponseDto<User> = {
         success: true,
@@ -81,6 +91,7 @@ export class UserController {
   @UsePipes(new ValidationPipe(updateUserSchema))
   async update(
     @Body() updatedUserDto: UpdateUserDto,
+    @Req() req: any,
   ): Promise<ResponseDto<User | null>> {
     const updatedUser = await this.userService.updateUser(updatedUserDto);
 
@@ -94,7 +105,7 @@ export class UserController {
     }
 
     await this.historyService.createHistory({
-      user_id: updatedUser.data.id,
+      user_id: req.user.id,
       entity_type: 'user',
       entity_id: updatedUser.data.id,
       changed_fields: updatedUser.changed_fields,
@@ -113,8 +124,16 @@ export class UserController {
   @UseGuards(SessionAuthGuard)
   async delete(
     @Param('userId', new ParseIntPipe()) userId: number,
+    @Req() req: any,
   ): Promise<ResponseDto<User>> {
     const deletedUser = await this.userService.deleteUser(userId);
+
+    await this.historyService.createHistory({
+      user_id: req.user.id,
+      entity_type: 'user',
+      entity_id: deletedUser.id,
+      changed_fields: '["Удалено"]',
+    });
 
     const response: ResponseDto<User> = {
       success: true,

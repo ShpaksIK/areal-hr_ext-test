@@ -7,6 +7,8 @@ import {
   Param,
   Post,
   Put,
+  Req,
+  UseGuards,
   UsePipes,
 } from '@nestjs/common';
 import { EmployeeService } from './employee.service';
@@ -23,6 +25,7 @@ import {
 import { HistoryService } from 'src/history/history.service';
 import { ResponseDto } from 'src/dto/response.dto';
 import { ParseIntPipe } from 'src/validation/parse-int.pipe';
+import { SessionAuthGuard } from 'src/guard/session-auth.guard';
 
 @Controller('employee')
 export class EmployeeController {
@@ -32,6 +35,7 @@ export class EmployeeController {
   ) {}
 
   @Get('/:employeeId')
+  @UseGuards(SessionAuthGuard)
   async getById(
     @Param('employeeId', new ParseIntPipe()) employeeId: number,
   ): Promise<ResponseDto<Employee | null>> {
@@ -55,6 +59,7 @@ export class EmployeeController {
   }
 
   @Get()
+  @UseGuards(SessionAuthGuard)
   async getAll(): Promise<ResponseDto<Employee[]>> {
     const data = await this.employeeService.getEmployees();
 
@@ -68,9 +73,11 @@ export class EmployeeController {
   }
 
   @Post()
+  @UseGuards(SessionAuthGuard)
   @UsePipes(new ValidationPipe(createEmployeeSchema))
   async create(
     @Body() createEmployeeDto: CreateEmployeeDto,
+    @Req() req: any,
   ): Promise<ResponseDto<Employee>> {
     const createdEmployee =
       await this.employeeService.createEmployee(createEmployeeDto);
@@ -81,13 +88,22 @@ export class EmployeeController {
       data: createdEmployee,
     };
 
+    await this.historyService.createHistory({
+      user_id: req.user.id,
+      entity_type: 'employee',
+      entity_id: createdEmployee.id,
+      changed_fields: '["Создано"]',
+    });
+
     return response;
   }
 
   @Put()
+  @UseGuards(SessionAuthGuard)
   @UsePipes(new ValidationPipe(updateEmployeeSchema))
   async update(
     @Body() updateEmployeeDto: UpdateEmployeeDto,
+    @Req() req: any,
   ): Promise<ResponseDto<Employee | null>> {
     const updatedEmployee =
       await this.employeeService.updateEmployee(updateEmployeeDto);
@@ -102,7 +118,7 @@ export class EmployeeController {
     }
 
     await this.historyService.createHistory({
-      user_id: updateEmployeeDto.user_id,
+      user_id: req.user.id,
       entity_type: 'employee',
       entity_id: updatedEmployee.data.id,
       changed_fields: updatedEmployee.changed_fields,
@@ -118,8 +134,10 @@ export class EmployeeController {
   }
 
   @Delete('/:employeeId')
+  @UseGuards(SessionAuthGuard)
   async delete(
     @Param('employeeId', new ParseIntPipe()) employeeId: number,
+    @Req() req: any,
   ): Promise<ResponseDto<Employee>> {
     const deletedEmployee =
       await this.employeeService.deleteEmployee(employeeId);
@@ -129,6 +147,13 @@ export class EmployeeController {
       message: 'Успешно',
       data: deletedEmployee,
     };
+
+    await this.historyService.createHistory({
+      user_id: req.user.id,
+      entity_type: 'employee',
+      entity_id: employeeId,
+      changed_fields: '["Удалено"]',
+    });
 
     return response;
   }

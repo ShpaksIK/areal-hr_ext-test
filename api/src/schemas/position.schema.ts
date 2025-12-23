@@ -9,9 +9,6 @@ export const createPositionSchema = Joi.object({
 });
 
 export const updatePositionSchema = Joi.object({
-  user_id: Joi.number().required().messages({
-    'any.required': 'Идентификатор пользователя является обязательным полем',
-  }),
   id: Joi.number().required().messages({
     'any.required': 'Идентификатор должности является обязательным полем',
   }),

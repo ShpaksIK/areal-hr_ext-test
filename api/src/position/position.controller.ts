@@ -7,6 +7,8 @@ import {
   Param,
   Post,
   Put,
+  Req,
+  UseGuards,
   UsePipes,
 } from '@nestjs/common';
 import {
@@ -23,6 +25,7 @@ import { PositionService } from './position.service';
 import { HistoryService } from 'src/history/history.service';
 import { ResponseDto } from 'src/dto/response.dto';
 import { ParseIntPipe } from 'src/validation/parse-int.pipe';
+import { SessionAuthGuard } from 'src/guard/session-auth.guard';
 
 @Controller('position')
 export class PositionController {
@@ -32,6 +35,7 @@ export class PositionController {
   ) {}
 
   @Get('/:positionId')
+  @UseGuards(SessionAuthGuard)
   async getById(
     @Param('positionId', new ParseIntPipe()) positionId: number,
   ): Promise<ResponseDto<Position | null>> {
@@ -55,6 +59,7 @@ export class PositionController {
   }
 
   @Get()
+  @UseGuards(SessionAuthGuard)
   async getAll(): Promise<ResponseDto<Position[]>> {
     const data = await this.positionService.getPositions();
 
@@ -68,12 +73,21 @@ export class PositionController {
   }
 
   @Post()
+  @UseGuards(SessionAuthGuard)
   @UsePipes(new ValidationPipe(createPositionSchema))
   async create(
     @Body() createPositionDto: CreatePositionDto,
+    @Req() req: any,
   ): Promise<ResponseDto<Position>> {
     const createdPosition =
       await this.positionService.createPosition(createPositionDto);
+
+    await this.historyService.createHistory({
+      user_id: req.user.id,
+      entity_type: 'position',
+      entity_id: createdPosition.id,
+      changed_fields: '["Создано"]',
+    });
 
     const response: ResponseDto<Position> = {
       success: true,
@@ -85,9 +99,11 @@ export class PositionController {
   }
 
   @Put()
+  @UseGuards(SessionAuthGuard)
   @UsePipes(new ValidationPipe(updatePositionSchema))
   async update(
     @Body() updatePositionDto: UpdatePositionDto,
+    @Req() req: any,
   ): Promise<ResponseDto<Position | null>> {
     const updatedPosition =
       await this.positionService.updatePosition(updatePositionDto);
@@ -102,7 +118,7 @@ export class PositionController {
     }
 
     await this.historyService.createHistory({
-      user_id: updatePositionDto.user_id,
+      user_id: req.user.id,
       entity_type: 'position',
       entity_id: updatedPosition.data.id,
       changed_fields: updatedPosition.changed_fields,
@@ -118,11 +134,20 @@ export class PositionController {
   }
 
   @Delete('/:positionId')
+  @UseGuards(SessionAuthGuard)
   async delete(
     @Param('positionId', new ParseIntPipe()) positionId: number,
+    @Req() req: any,
   ): Promise<ResponseDto<Position>> {
     const deletedPosition =
       await this.positionService.deletePosition(positionId);
+
+    await this.historyService.createHistory({
+      user_id: req.user.id,
+      entity_type: 'position',
+      entity_id: positionId,
+      changed_fields: '["Удалено"]',
+    });
 
     const response: ResponseDto<Position> = {
       success: true,

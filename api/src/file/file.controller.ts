@@ -9,7 +9,9 @@ import {
   ParseFilePipe,
   Post,
   Put,
+  Req,
   UploadedFile,
+  UseGuards,
   UseInterceptors,
   UsePipes,
 } from '@nestjs/common';
@@ -26,6 +28,7 @@ import { HistoryService } from 'src/history/history.service';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { ResponseDto } from 'src/dto/response.dto';
 import { ParseIntPipe } from 'src/validation/parse-int.pipe';
+import { SessionAuthGuard } from 'src/guard/session-auth.guard';
 
 @Controller('file')
 export class FileController {
@@ -35,6 +38,7 @@ export class FileController {
   ) {}
 
   @Get('/:fileId')
+  @UseGuards(SessionAuthGuard)
   async getById(
     @Param('fileId', new ParseIntPipe()) fileId: number,
   ): Promise<ResponseDto<File | null>> {
@@ -58,6 +62,7 @@ export class FileController {
   }
 
   @Get()
+  @UseGuards(SessionAuthGuard)
   async getAll(): Promise<ResponseDto<File[]>> {
     const data = await this.fileService.getFiles();
 
@@ -71,6 +76,7 @@ export class FileController {
   }
 
   @Post()
+  @UseGuards(SessionAuthGuard)
   @UseInterceptors(FileInterceptor('file'))
   async create(
     @UploadedFile(
@@ -80,6 +86,7 @@ export class FileController {
     )
     file: Express.Multer.File,
     @Body(new ValidationPipe(createFileSchema)) createFileDto: CreateFileDto,
+    @Req() req: any,
   ): Promise<ResponseDto<File>> {
     const uploadFileDto: UploadFileDto = {
       ...createFileDto,
@@ -87,6 +94,13 @@ export class FileController {
     };
 
     const createdFile = await this.fileService.createFile(uploadFileDto);
+
+    await this.historyService.createHistory({
+      user_id: req.user.id,
+      entity_type: 'file',
+      entity_id: createdFile.id,
+      changed_fields: '["Создано"]',
+    });
 
     const response: ResponseDto<File> = {
       success: true,
@@ -98,9 +112,11 @@ export class FileController {
   }
 
   @Put()
+  @UseGuards(SessionAuthGuard)
   @UsePipes(new ValidationPipe(updateFileSchema))
   async update(
     @Body() updateFileDto: UpdateFileDto,
+    @Req() req: any,
   ): Promise<ResponseDto<File | null>> {
     const updatedFile = await this.fileService.updateFile(updateFileDto);
 
@@ -114,7 +130,7 @@ export class FileController {
     }
 
     await this.historyService.createHistory({
-      user_id: updateFileDto.user_id,
+      user_id: req.user.id,
       entity_type: 'file',
       entity_id: updatedFile.data.id,
       changed_fields: updatedFile.changed_fields,
@@ -130,10 +146,19 @@ export class FileController {
   }
 
   @Delete('/:fileId')
+  @UseGuards(SessionAuthGuard)
   async delete(
     @Param('fileId', new ParseIntPipe()) fileId: number,
+    @Req() req: any,
   ): Promise<ResponseDto<File>> {
     const deletedFile = await this.fileService.deleteFile(fileId);
+
+    await this.historyService.createHistory({
+      user_id: req.user.id,
+      entity_type: 'file',
+      entity_id: fileId,
+      changed_fields: '["Удалено"]',
+    });
 
     const response: ResponseDto<File> = {
       success: true,

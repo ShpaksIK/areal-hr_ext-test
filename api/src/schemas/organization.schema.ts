@@ -12,9 +12,6 @@ export const createOrganizationSchema = Joi.object({
 });
 
 export const updateOrganizationSchema = Joi.object({
-  user_id: Joi.number().required().messages({
-    'any.required': 'Идентификатор пользователя является обязательным полем',
-  }),
   id: Joi.number().required().messages({
     'any.required': 'Идентификатор организации является обязательным полем',
   }),

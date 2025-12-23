@@ -7,6 +7,8 @@ import {
   Param,
   Post,
   Put,
+  Req,
+  UseGuards,
   UsePipes,
 } from '@nestjs/common';
 import {
@@ -23,6 +25,7 @@ import { OrganizationService } from './organization.service';
 import { HistoryService } from 'src/history/history.service';
 import { ResponseDto } from 'src/dto/response.dto';
 import { ParseIntPipe } from 'src/validation/parse-int.pipe';
+import { SessionAuthGuard } from 'src/guard/session-auth.guard';
 
 @Controller('organization')
 export class OrganizationController {
@@ -32,6 +35,7 @@ export class OrganizationController {
   ) {}
 
   @Get('/:organizationId')
+  @UseGuards(SessionAuthGuard)
   async getById(
     @Param('organizationId', new ParseIntPipe()) organizationId: number,
   ): Promise<ResponseDto<Organization | null>> {
@@ -56,6 +60,7 @@ export class OrganizationController {
   }
 
   @Get()
+  @UseGuards(SessionAuthGuard)
   async getAll(): Promise<ResponseDto<Organization[]>> {
     const data = await this.organizationService.getOrganizations();
 
@@ -69,12 +74,21 @@ export class OrganizationController {
   }
 
   @Post()
+  @UseGuards(SessionAuthGuard)
   @UsePipes(new ValidationPipe(createOrganizationSchema))
   async create(
     @Body() createOrganizationDto: CreateOrganizationDto,
+    @Req() req: any,
   ): Promise<ResponseDto<Organization>> {
     const createdOrganization =
       await this.organizationService.createOrganization(createOrganizationDto);
+
+    await this.historyService.createHistory({
+      user_id: req.user.id,
+      entity_type: 'organization',
+      entity_id: createdOrganization.id,
+      changed_fields: '["Создано"]',
+    });
 
     const response: ResponseDto<Organization> = {
       success: true,
@@ -86,9 +100,11 @@ export class OrganizationController {
   }
 
   @Put()
+  @UseGuards(SessionAuthGuard)
   @UsePipes(new ValidationPipe(updateOrganizationSchema))
   async update(
     @Body() updateOrganizationDto: UpdateOrganizationDto,
+    @Req() req: any,
   ): Promise<ResponseDto<Organization | null>> {
     const updatedOrganization =
       await this.organizationService.updateOrganization(updateOrganizationDto);
@@ -103,7 +119,7 @@ export class OrganizationController {
     }
 
     await this.historyService.createHistory({
-      user_id: updateOrganizationDto.user_id,
+      user_id: req.user.id,
       entity_type: 'organization',
       entity_id: updatedOrganization.data.id,
       changed_fields: updatedOrganization.changed_fields,
@@ -119,11 +135,20 @@ export class OrganizationController {
   }
 
   @Delete('/:organizationId')
+  @UseGuards(SessionAuthGuard)
   async delete(
     @Param('organizationId', new ParseIntPipe()) organizationId: number,
+    @Req() req: any,
   ): Promise<ResponseDto<Organization>> {
     const deletedOrganization =
       await this.organizationService.deleteOrganization(organizationId);
+
+    await this.historyService.createHistory({
+      user_id: req.user.id,
+      entity_type: 'organization',
+      entity_id: deletedOrganization.id,
+      changed_fields: '["Удалено"]',
+    });
 
     const response: ResponseDto<Organization> = {
       success: true,

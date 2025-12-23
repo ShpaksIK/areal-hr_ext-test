@@ -128,7 +128,6 @@ import {
 } from '../api/entities';
 import { useQuasar } from 'quasar';
 import { useRouter } from 'vue-router';
-import '../api/create-test-entity';
 import { setAuthToken } from 'src/api/local-storage';
 
 const $q = useQuasar();
@@ -527,7 +526,6 @@ const loadData = async (): Promise<void> => {
         id: me.data.role_id,
         user_id: me.data.id,
       };
-      console.log(userRole);
     } catch {
       setAuthToken('');
       await router.push('/login');

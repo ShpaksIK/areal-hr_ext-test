@@ -36,7 +36,7 @@ export class HistoryService {
               RETURNING *;
             `;
     const values = [
-      1,
+      historyDto.user_id,
       historyDto.entity_type,
       historyDto.entity_id,
       historyDto.changed_fields,
